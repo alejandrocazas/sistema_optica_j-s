@@ -1,88 +1,134 @@
 <x-app>
-    <div class="max-w-4xl mx-auto py-10 sm:px-6 lg:px-8">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-8">Mi Perfil</h1>
+    {{-- Estilos específicos para esta vista --}}
+    <style>
+        .text-gold { color: #C59D5F; }
+        .bg-gold { background-color: #C59D5F; }
+        .border-gold { border-color: #C59D5F; }
+        .focus-ring-gold:focus { --tw-ring-color: #C59D5F; border-color: #C59D5F; }
+        .font-serif-display { font-family: 'Playfair Display', serif; }
 
-        <div class="bg-white dark:bg-gray-800 shadow-lg overflow-hidden sm:rounded-lg p-8 border-t-4 border-blue-600 dark:border-blue-500 transition-colors">
-            
+        /* Botón Dorado Premium */
+        .btn-gold {
+            background: linear-gradient(135deg, #C59D5F 0%, #a37f45 100%);
+            color: white;
+        }
+        .btn-gold:hover {
+            background: linear-gradient(135deg, #d6ad6d 0%, #b89050 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(197, 157, 95, 0.4);
+        }
+    </style>
+
+    <div class="max-w-4xl mx-auto py-10 sm:px-6 lg:px-8">
+        {{-- Encabezado con Tipografía Elegante --}}
+        <div class="mb-8 flex items-center gap-3">
+            <div class="h-8 w-1 bg-[#C59D5F] rounded-full"></div>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white font-serif-display tracking-wide">Mi Perfil</h1>
+        </div>
+
+        <div class="bg-white dark:bg-neutral-800 shadow-xl overflow-hidden sm:rounded-lg p-8 border-t-4 border-[#C59D5F] transition-colors">
+
             {{-- Formulario Único --}}
             <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH')
 
                 {{-- FOTO DE PERFIL --}}
-                <div class="mb-8 text-center">
+                <div class="mb-10 text-center">
                     <div class="relative inline-block group">
-                        <div class="mt-2">
-                            <img id="preview-image" 
-                                 class="h-32 w-32 rounded-full object-cover mx-auto shadow-lg border-4 border-white dark:border-gray-700" 
-                                 src="{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&color=7F9CF5&background=EBF4FF' }}" 
+                        <div class="mt-2 p-1 border-2 border-[#C59D5F] rounded-full border-dashed">
+                            <img id="preview-image"
+                                 class="h-32 w-32 rounded-full object-cover mx-auto shadow-lg border-4 border-white dark:border-neutral-700"
+                                 src="{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&color=C59D5F&background=171717' }}"
                                  alt="{{ $user->name }}">
                         </div>
-                        
-                        <label class="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-md cursor-pointer transition transform hover:scale-110">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+
+                        <label class="absolute bottom-2 right-2 bg-[#C59D5F] hover:bg-[#a37f45] text-white p-2.5 rounded-full shadow-lg cursor-pointer transition transform hover:scale-110 border-2 border-white dark:border-neutral-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
                             </svg>
                             <input type="file" name="photo" class="hidden" onchange="previewFile(this)" accept="image/*" />
                         </label>
                     </div>
+                    <p class="text-xs text-gray-500 mt-2 uppercase tracking-wide">Click en la cámara para cambiar</p>
                     @error('photo') <p class="text-red-500 text-xs mt-2">{{ $message }}</p> @enderror
                 </div>
 
                 {{-- DATOS PERSONALES --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div>
-                        <label class="block font-bold text-sm text-gray-700 dark:text-gray-300 mb-2">Nombre Completo</label>
-                        <input type="text" name="name" value="{{ old('name', $user->name) }}" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <label class="block font-bold text-xs text-gray-500 uppercase tracking-wider mb-2">Nombre Completo</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            </span>
+                            <input type="text" name="name" value="{{ old('name', $user->name) }}"
+                                class="w-full pl-10 p-3 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-ring-gold focus:border-[#C59D5F] outline-none transition font-medium">
+                        </div>
                         @error('name') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                     </div>
                     <div>
-                        <label class="block font-bold text-sm text-gray-700 dark:text-gray-300 mb-2">Correo Electrónico</label>
-                        <input type="email" name="email" value="{{ old('email', $user->email) }}" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <label class="block font-bold text-xs text-gray-500 uppercase tracking-wider mb-2">Correo Electrónico</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            </span>
+                            <input type="email" name="email" value="{{ old('email', $user->email) }}"
+                                class="w-full pl-10 p-3 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-ring-gold focus:border-[#C59D5F] outline-none transition font-medium">
+                        </div>
                         @error('email') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
-                <hr class="my-8 border-gray-200 dark:border-gray-700">
+                <div class="relative my-10">
+                    <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                        <div class="w-full border-t border-gray-200 dark:border-neutral-700"></div>
+                    </div>
+                    <div class="relative flex justify-center">
+                        <span class="bg-white dark:bg-neutral-800 px-3 text-gray-400 text-sm font-serif-display italic">Seguridad de la Cuenta</span>
+                    </div>
+                </div>
 
                 {{-- SEGURIDAD --}}
-                <h3 class="font-bold text-lg mb-2 text-gray-800 dark:text-white flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 10.3c.769-2.985 3.836-5.549 8.179-5.549 4.344 0 7.41 2.564 8.179 5.549.082.318-.16.651-.488.651H2.654c-.328 0-.57-.333-.488-.651zM10.335 12a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" /><path d="M4 12a2 2 0 012-2h8a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z" /></svg>
-                    Cambiar Contraseña
+                <h3 class="font-bold text-lg mb-2 text-gray-900 dark:text-white flex items-center gap-2 font-serif-display">
+                    <div class="p-1.5 bg-[#C59D5F]/10 rounded-full text-[#C59D5F]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 10.3c.769-2.985 3.836-5.549 8.179-5.549 4.344 0 7.41 2.564 8.179 5.549.082.318-.16.651-.488.651H2.654c-.328 0-.57-.333-.488-.651zM10.335 12a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" /><path d="M4 12a2 2 0 012-2h8a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z" /></svg>
+                    </div>
+                    Actualizar Contraseña
                 </h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Deja estos campos vacíos si no quieres cambiar tu contraseña actual.</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 ml-9">Deja estos campos vacíos si deseas mantener tu contraseña actual.</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                     <div>
-                        <label class="block font-bold text-sm text-gray-700 dark:text-gray-300 mb-2">Contraseña Actual</label>
-                        <input type="password" name="current_password" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="••••••••">
+                        <label class="block font-bold text-xs text-gray-500 uppercase tracking-wider mb-2">Contraseña Actual</label>
+                        <input type="password" name="current_password"
+                            class="w-full p-3 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-ring-gold focus:border-[#C59D5F] outline-none transition" placeholder="••••••••">
                         @error('current_password') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                     </div>
                     <div>
-                        <label class="block font-bold text-sm text-gray-700 dark:text-gray-300 mb-2">Nueva Contraseña</label>
-                        <input type="password" name="new_password" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="••••••••">
+                        <label class="block font-bold text-xs text-[#C59D5F] uppercase tracking-wider mb-2">Nueva Contraseña</label>
+                        <input type="password" name="new_password"
+                            class="w-full p-3 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-ring-gold focus:border-[#C59D5F] outline-none transition" placeholder="••••••••">
                         @error('new_password') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                     </div>
                     <div>
-                        <label class="block font-bold text-sm text-gray-700 dark:text-gray-300 mb-2">Confirmar Nueva</label>
-                        <input type="password" name="new_password_confirmation" class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="••••••••">
+                        <label class="block font-bold text-xs text-[#C59D5F] uppercase tracking-wider mb-2">Confirmar Nueva</label>
+                        <input type="password" name="new_password_confirmation"
+                            class="w-full p-3 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-ring-gold focus:border-[#C59D5F] outline-none transition" placeholder="••••••••">
                     </div>
                 </div>
 
                 {{-- BOTONES DE ACCIÓN --}}
-                <div class="flex justify-end items-center gap-4 border-t dark:border-gray-700 pt-6">
-                    
-                    {{-- 1. BOTÓN CANCELAR (Gris, lleva al Dashboard) --}}
-                    <a href="{{ route('dashboard') }}" class="bg-gray-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-600 shadow-md transform transition hover:-translate-y-1 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                        </svg>
+                <div class="flex justify-end items-center gap-4 border-t border-gray-100 dark:border-neutral-700 pt-6">
+
+                    {{-- 1. BOTÓN CANCELAR --}}
+                    <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white font-semibold text-sm py-3 px-6 transition flex items-center gap-2">
                         Cancelar
                     </a>
 
-                    {{-- 2. BOTÓN GUARDAR (Azul, envía el formulario) --}}
-                    <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 shadow-lg transform transition hover:-translate-y-1 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                    {{-- 2. BOTÓN GUARDAR (PREMIUM GOLD) --}}
+                    <button type="submit" class="btn-gold font-bold py-3 px-8 rounded-sm shadow-md transition flex items-center gap-2 text-sm tracking-widest uppercase">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
                         Guardar Cambios
                     </button>
                 </div>
