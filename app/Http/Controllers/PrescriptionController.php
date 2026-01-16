@@ -39,33 +39,41 @@ class PrescriptionController extends Controller
     }
 
     // Paso 3: Generar PDF Ticket
-    public function print($id)
+   public function print($id)
     {
+        // 1. Buscamos la receta
         $prescription = Prescription::with('patient', 'user')->findOrFail($id);
-        
-        $pdf = Pdf::loadView('prescriptions.pdf', compact('prescription'));
-        
-        // Configurar tamaño ticket (80mm x alto variable o A5)
-        // setPaper([0, 0, 226.77, 425.19], 'portrait'); // Aprox 80mm ancho
-        
+
+        // 2. Lógica para el LOGO en Base64
+        // Asegúrate de tener tu imagen en: public/images/logo.png
+        $path = public_path('images/grupo.jpg');
+        $logoBase64 = null;
+
+        if (file_exists($path)) {
+            $type = pathinfo($path, PATHINFO_EXTENSION);
+            $data = file_get_contents($path);
+            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        }
+
+        // 3. Cargamos la vista pasando la variable $logoBase64
+        $pdf = Pdf::loadView('prescriptions.pdf', compact('prescription', 'logoBase64'));
+
+        // 4. Configurar tamaño Media Carta (Half Letter)
+        // Medidas en puntos (points): [0, 0, Ancho, Alto]
+        // Ancho: 396.85 pt (140mm)
+        // Alto: 612.28 pt (216mm)
+        $pdf->setPaper([0, 0, 396.85, 612.28], 'portrait');
+
         return $pdf->stream('receta-'.$prescription->id.'.pdf');
-    }
-    // Ver el historial completo de UN paciente
-    public function byPatient(Patient $patient)
-    {
-        // Traemos las recetas ordenadas por fecha (la más nueva primero)
-        $prescriptions = $patient->prescriptions()->latest()->get();
-        
-        return view('prescriptions.history', compact('patient', 'prescriptions'));
     }
 
     // Nuevo método: Pantalla para buscar paciente antes de la receta
     public function selectPatient(Request $request)
     {
         $search = $request->input('search');
-        
+
         $patients = [];
-        
+
         if($search){
             $patients = Patient::where('name', 'LIKE', "%{$search}%")
                             ->orWhere('ci', 'LIKE', "%{$search}%")
@@ -80,7 +88,7 @@ class PrescriptionController extends Controller
     {
         $prescription = Prescription::findOrFail($id);
         $patient = $prescription->patient; // Necesitamos datos del paciente para el encabezado
-        
+
         return view('prescriptions.edit', compact('prescription', 'patient'));
     }
 
@@ -88,7 +96,7 @@ class PrescriptionController extends Controller
     public function update(Request $request, $id)
     {
         $prescription = Prescription::findOrFail($id);
-        
+
         // Actualizamos todos los datos
         $prescription->update($request->all());
 
@@ -102,7 +110,7 @@ class PrescriptionController extends Controller
     {
         $prescription = Prescription::findOrFail($id);
         $patientId = $prescription->patient_id; // Guardamos el ID para volver
-        
+
         $prescription->delete();
 
         return redirect()->route('prescriptions.history', $patientId)
