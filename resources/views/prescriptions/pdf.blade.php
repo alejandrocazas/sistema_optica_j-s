@@ -4,18 +4,23 @@
     <meta charset="utf-8">
     <title>Receta #{{ str_pad($prescription->id, 6, '0', STR_PAD_LEFT) }}</title>
     <style>
-        /* CONFIGURACIÓN DE PÁGINA: MEDIA CARTA */
+        /* CONFIGURACIÓN EXACTA PARA MEDIA A4 (A5) */
         @page {
-            margin: 0;
-            size: 140mm 216mm; /* Ancho x Alto */
+            margin: 0; /* Sin márgenes en la hoja base */
+            size: 148mm 210mm; /* Tamaño exacto A5 */
         }
 
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
-            margin: 15mm; /* Margen interno del contenido */
-            color: #1f2937; /* Gris muy oscuro (casi negro) */
-            font-size: 10px;
-            line-height: 1.4;
+            /* Márgenes internos de seguridad para que la impresora no corte */
+            margin-top: 10mm;
+            margin-bottom: 10mm;
+            margin-left: 15mm;
+            margin-right: 15mm;
+
+            color: #1f2937;
+            font-size: 10px; /* Letra un poco más pequeña para que entre todo */
+            line-height: 1.3;
         }
 
         /* UTILIDADES DE COLOR DE MARCA */
@@ -117,6 +122,14 @@
             font-weight: bold;
             z-index: -1;
             white-space: nowrap;
+        }
+        /* AJUSTE EXTRA: Reducir un poco la firma para que no se salga */
+        .footer {
+            position: fixed;
+            bottom: 5mm; /* Más pegado al borde inferior */
+            left: 15mm;
+            right: 15mm;
+            text-align: center;
         }
     </style>
 </head>

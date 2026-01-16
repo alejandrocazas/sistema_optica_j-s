@@ -60,7 +60,7 @@ class PrescriptionController extends Controller
         $pdf = Pdf::loadView('prescriptions.pdf', compact('prescription', 'logoBase64'));
 
         // 4. Configurar tamaño Media Carta
-        $pdf->setPaper([0, 0, 396.85, 612.28], 'portrait');
+        $pdf->setPaper('a5', 'portrait');
 
         return $pdf->stream('receta-'.$prescription->id.'.pdf');
     }
