@@ -32,7 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // 1. DASHBOARD (Acceso: TODOS)
 Route::get('/dashboard', function () {
-    
+
     // Obtener sucursal del usuario actual
     $branchId = auth()->user()->branch_id;
 
@@ -66,7 +66,7 @@ Route::get('/dashboard', function () {
 
     // 3. GESTIÓN DE PACIENTES (Acceso: Vendedor y Optometrista)
     // Nota: El Admin entra automáticamente por la lógica del Middleware.
-    Route::middleware(['role:vendedor,optometrista'])->group(function () {
+        Route::middleware(['role:vendedor,optometrista'])->group(function () {
         Route::resource('patients', PatientController::class);
         // Historial clínico también lo pueden ver ambos (o solo opto, según prefieras)
         Route::get('patients/{patient}/historial', [PrescriptionController::class, 'byPatient'])->name('prescriptions.history');
@@ -88,7 +88,7 @@ Route::get('/dashboard', function () {
         Route::post('/caja/abrir', [CashController::class, 'open'])->name('cash.open');
         Route::post('/caja/cerrar', [CashController::class, 'close'])->name('cash.close');
         Route::post('/caja/gasto', [CashController::class, 'storeExpense'])->name('cash.expense');
-        
+
         // Cobros de Saldos
         Route::get('/trabajo/{sale}/estado/{status}', [CashController::class, 'updateStatus'])->name('work.status');
         Route::post('/trabajo/{sale}/cobrar', [CashController::class, 'payBalance'])->name('work.pay');
@@ -98,7 +98,7 @@ Route::get('/dashboard', function () {
     Route::middleware(['role:optometrista'])->group(function () {
         Route::get('atenciones', [PrescriptionController::class, 'index'])->name('prescriptions.index');
         Route::get('atenciones/nueva', [PrescriptionController::class, 'selectPatient'])->name('prescriptions.selectPatient');
-        
+
         // Gestión de Recetas
         Route::get('patients/{patient}/receta/nueva', [PrescriptionController::class, 'create'])->name('prescriptions.create');
         Route::post('patients/{patient}/receta', [PrescriptionController::class, 'store'])->name('prescriptions.store');
