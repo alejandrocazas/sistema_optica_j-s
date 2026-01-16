@@ -154,8 +154,8 @@
                 <div style="font-size: 9px; color: #4b5563; line-height: 1.4;">
                     <strong>6 de Octubre, Adolfo Mier y Bolívar</strong><br>
                     Oruro, Bolivia<br>
-                    <span style="color: #C59D5F;">📱 61665776</span><br>
-                    ✉️ grupopticojs@gmail.com
+                    <span style="color: #C59D5F;">Cel: 61665776</span><br>
+                      grupopticojs@gmail.com
                 </div>
                 <div style="margin-top: 5px; font-size: 11px; font-weight: bold; color: #1f2937; background: #f3f4f6; padding: 3px 8px; display: inline-block; border-radius: 4px;">
                     RECETA Nº {{ str_pad($prescription->id, 6, '0', STR_PAD_LEFT) }}
@@ -185,6 +185,7 @@
     </div>
 
     {{-- TABLA DE REFRACCIÓN --}}
+    {{-- TABLA DE REFRACCIÓN CORREGIDA --}}
     <div class="rx-title">Refracción Lejana</div>
     <table class="rx-table">
         <thead>
@@ -196,29 +197,62 @@
             </tr>
         </thead>
         <tbody>
+            {{-- OJO DERECHO (OD) --}}
             <tr>
                 <td class="eye-col">OD</td>
-                <td>{{ $prescription->od_esfera != 0 ? number_format((float)$prescription->od_esfera, 2) : 'Neutro' }}</td>
-                <td>{{ $prescription->od_cilindro != 0 ? number_format((float)$prescription->od_cilindro, 2) : '-' }}</td>
+                <td>
+                    @if($prescription->od_esfera == 0)
+                        Neutro
+                    @else
+                        {{-- Aquí agregamos la lógica del signo + --}}
+                        {{ $prescription->od_esfera > 0 ? '+' : '' }}{{ number_format((float)$prescription->od_esfera, 2) }}
+                    @endif
+                </td>
+                <td>
+                    @if($prescription->od_cilindro == 0)
+                        -
+                    @else
+                        {{ $prescription->od_cilindro > 0 ? '+' : '' }}{{ number_format((float)$prescription->od_cilindro, 2) }}
+                    @endif
+                </td>
                 <td>{{ $prescription->od_eje ? $prescription->od_eje . '°' : '-' }}</td>
             </tr>
+
+            {{-- OJO IZQUIERDO (OI) --}}
             <tr>
                 <td class="eye-col">OI</td>
-                <td>{{ $prescription->oi_esfera != 0 ? number_format((float)$prescription->oi_esfera, 2) : 'Neutro' }}</td>
-                <td>{{ $prescription->oi_cilindro != 0 ? number_format((float)$prescription->oi_cilindro, 2) : '-' }}</td>
+                <td>
+                    @if($prescription->oi_esfera == 0)
+                        Neutro
+                    @else
+                        {{ $prescription->oi_esfera > 0 ? '+' : '' }}{{ number_format((float)$prescription->oi_esfera, 2) }}
+                    @endif
+                </td>
+                <td>
+                    @if($prescription->oi_cilindro == 0)
+                        -
+                    @else
+                        {{ $prescription->oi_cilindro > 0 ? '+' : '' }}{{ number_format((float)$prescription->oi_cilindro, 2) }}
+                    @endif
+                </td>
                 <td>{{ $prescription->oi_eje ? $prescription->oi_eje . '°' : '-' }}</td>
             </tr>
         </tbody>
     </table>
 
+    {{-- TABLA DE ADICIÓN (Si aplica) --}}
     @if($prescription->add_od || $prescription->add_oi)
         <div class="rx-title" style="margin-top: 15px;">Adición (Lectura)</div>
         <table class="rx-table">
             <tbody>
                 <tr>
                     <td class="eye-col" width="10%">ADD</td>
-                    <td width="45%">OD: <strong>{{ $prescription->add_od > 0 ? '+' : '' }}{{ number_format((float)$prescription->add_od, 2) }}</strong></td>
-                    <td width="45%">OI: <strong>{{ $prescription->add_oi > 0 ? '+' : '' }}{{ number_format((float)$prescription->add_oi, 2) }}</strong></td>
+                    <td width="45%">
+                        OD: <strong>{{ $prescription->add_od > 0 ? '+' : '' }}{{ number_format((float)$prescription->add_od, 2) }}</strong>
+                    </td>
+                    <td width="45%">
+                        OI: <strong>{{ $prescription->add_oi > 0 ? '+' : '' }}{{ number_format((float)$prescription->add_oi, 2) }}</strong>
+                    </td>
                 </tr>
             </tbody>
         </table>
