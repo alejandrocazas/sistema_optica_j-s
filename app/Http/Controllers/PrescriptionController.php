@@ -5,20 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\Prescription;
 use App\Models\Patient;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf; // Importar PDF
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PrescriptionController extends Controller
 {
-
     public function index()
-{
-    // Optimización: Usamos paginate() en lugar de get() para no sobrecargar la memoria
-    $prescriptions = \App\Models\Prescription::with(['patient', 'user']) // Carga inteligente (evita N+1)
-                        ->latest()                      // Ordena por fecha descendente
-                        ->paginate(20);                 // Muestra 20 recetas por página
+    {
+        $prescriptions = \App\Models\Prescription::with(['patient', 'user'])
+                            ->latest()
+                            ->paginate(20);
 
-    return view('prescriptions.index', compact('prescriptions'));
-}
+        return view('prescriptions.index', compact('prescriptions'));
+    }
+
     // Paso 1: Mostrar formulario (Recibimos el ID del paciente)
     public function create(Patient $patient)
     {
@@ -34,18 +33,20 @@ class PrescriptionController extends Controller
 
         $prescription = Prescription::create($data);
 
-        // Redirigir a imprimir directamente o volver al historial
-        return redirect()->route('prescriptions.print', $prescription->id);
+        // CAMBIO: Redirigir al historial + variable para imprimir en nueva pestaña
+        return redirect()->route('prescriptions.history', $patient->id)
+            ->with('success', 'Receta guardada exitosamente.')
+            ->with('print_prescription_id', $prescription->id); // <--- ESTO ACTIVA EL SCRIPT EN LA VISTA
     }
 
     // Paso 3: Generar PDF Ticket
-   public function print($id)
+    public function print($id)
     {
         // 1. Buscamos la receta
         $prescription = Prescription::with('patient', 'user')->findOrFail($id);
 
         // 2. Lógica para el LOGO en Base64
-        // Asegúrate de tener tu imagen en: public/images/logo.png
+        // Asegúrate de que la ruta coincida con tu archivo real (ej: grupo.jpg)
         $path = public_path('images/grupo.jpg');
         $logoBase64 = null;
 
@@ -55,13 +56,10 @@ class PrescriptionController extends Controller
             $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
         }
 
-        // 3. Cargamos la vista pasando la variable $logoBase64
+        // 3. Cargamos la vista
         $pdf = Pdf::loadView('prescriptions.pdf', compact('prescription', 'logoBase64'));
 
-        // 4. Configurar tamaño Media Carta (Half Letter)
-        // Medidas en puntos (points): [0, 0, Ancho, Alto]
-        // Ancho: 396.85 pt (140mm)
-        // Alto: 612.28 pt (216mm)
+        // 4. Configurar tamaño Media Carta
         $pdf->setPaper([0, 0, 396.85, 612.28], 'portrait');
 
         return $pdf->stream('receta-'.$prescription->id.'.pdf');
@@ -71,23 +69,23 @@ class PrescriptionController extends Controller
     public function selectPatient(Request $request)
     {
         $search = $request->input('search');
-
         $patients = [];
 
         if($search){
             $patients = Patient::where('name', 'LIKE', "%{$search}%")
                             ->orWhere('ci', 'LIKE', "%{$search}%")
-                            ->limit(5) // Solo mostramos 5 para no llenar la pantalla
+                            ->limit(5)
                             ->get();
         }
 
         return view('prescriptions.select_patient', compact('patients', 'search'));
     }
+
     // 1. Mostrar formulario de edición
     public function edit($id)
     {
         $prescription = Prescription::findOrFail($id);
-        $patient = $prescription->patient; // Necesitamos datos del paciente para el encabezado
+        $patient = $prescription->patient;
 
         return view('prescriptions.edit', compact('prescription', 'patient'));
     }
@@ -96,11 +94,8 @@ class PrescriptionController extends Controller
     public function update(Request $request, $id)
     {
         $prescription = Prescription::findOrFail($id);
-
-        // Actualizamos todos los datos
         $prescription->update($request->all());
 
-        // Redirigimos al historial de ESE paciente
         return redirect()->route('prescriptions.history', $prescription->patient_id)
                          ->with('success', 'Receta actualizada correctamente.');
     }
@@ -109,11 +104,20 @@ class PrescriptionController extends Controller
     public function destroy($id)
     {
         $prescription = Prescription::findOrFail($id);
-        $patientId = $prescription->patient_id; // Guardamos el ID para volver
+        $patientId = $prescription->patient_id;
 
         $prescription->delete();
 
         return redirect()->route('prescriptions.history', $patientId)
                          ->with('success', 'Receta eliminada.');
+    }
+
+    // --- NUEVO MÉTODO AGREGADO ---
+    // Este es el que faltaba para solucionar el Error 500
+    public function byPatient(Patient $patient)
+    {
+        $prescriptions = $patient->prescriptions()->with('user')->latest()->get();
+
+        return view('prescriptions.history', compact('patient', 'prescriptions'));
     }
 }

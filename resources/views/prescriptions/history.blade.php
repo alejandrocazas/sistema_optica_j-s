@@ -167,4 +167,15 @@
             </div>
         @endif
     </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Verificamos si existe la variable de sesión para imprimir
+        @if(session('print_prescription_id'))
+            // Generamos la URL de impresión
+            const printUrl = "{{ route('prescriptions.print', session('print_prescription_id')) }}";
+            // Abrimos en una nueva pestaña
+            window.open(printUrl, '_blank');
+        @endif
+    });
+</script>
 </x-app>
