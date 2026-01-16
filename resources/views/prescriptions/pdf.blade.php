@@ -2,309 +2,171 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <title>Receta #{{ str_pad($prescription->id, 6, '0', STR_PAD_LEFT) }}</title>
+    <title>Receta #{{ $prescription->id }}</title>
     <style>
-        /* CONFIGURACIÓN EXACTA PARA MEDIA A4 (A5) */
+        /* TAMAÑO COMPACTO (1/4 DE CARTA APROX) */
         @page {
-            margin: 0; /* Sin márgenes en la hoja base */
-            size: 148mm 210mm; /* Tamaño exacto A5 */
+            margin: 0;
+            size: 108mm 140mm; /* Ancho x Alto ajustado */
         }
 
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
-            /* Márgenes internos de seguridad para que la impresora no corte */
-            margin-top: 10mm;
-            margin-bottom: 10mm;
-            margin-left: 15mm;
-            margin-right: 15mm;
-
+            margin: 5mm;
             color: #1f2937;
-            font-size: 10px; /* Letra un poco más pequeña para que entre todo */
-            line-height: 1.3;
+            font-size: 8px; /* Letra pequeña para formato compacto */
+            line-height: 1.1;
         }
 
-        /* UTILIDADES DE COLOR DE MARCA */
+        /* COLORES */
         .text-gold { color: #C59D5F; }
         .bg-gold { background-color: #C59D5F; color: white; }
-        .border-gold { border-color: #C59D5F; }
-        .text-muted { color: #6b7280; }
+
+        /* ESTRUCTURA */
+        table { width: 100%; border-collapse: collapse; }
 
         /* ENCABEZADO */
-        .header-table { width: 100%; border-bottom: 2px solid #C59D5F; padding-bottom: 10px; margin-bottom: 15px; }
-        .logo-img { height: 50px; width: auto; } /* Ajusta según tu logo */
-        .company-name { font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
-        .company-details { font-size: 8px; color: #6b7280; }
+        .header td { vertical-align: middle; }
+        .company-title { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #111; }
+        .company-sub { font-size: 6px; color: #C59D5F; letter-spacing: 1px; font-weight: bold;}
+        .contact-info { font-size: 5px; color: #666; text-align: right; line-height: 1.1; }
 
-        /* SECCIÓN PACIENTE */
-        .patient-box {
-            width: 100%;
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #f9fafb;
-            border-left: 3px solid #C59D5F;
+        /* CAJA PACIENTE (COMPACTA) */
+        .patient-bar {
+            margin-top: 8px;
+            background-color: #f3f4f6;
+            border-left: 2px solid #C59D5F;
+            padding: 3px 5px;
         }
-        .info-label { font-size: 8px; text-transform: uppercase; color: #9ca3af; font-weight: bold; letter-spacing: 1px; }
-        .info-value { font-size: 12px; font-weight: bold; color: #111; border-bottom: 1px dotted #ccc; display: block; margin-bottom: 4px; }
+        .label { font-size: 5px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        .value { font-size: 9px; font-weight: bold; color: #000; }
 
-        /* TABLA DE MEDIDAS (RX) */
-        .rx-title {
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #C59D5F;
-            margin-bottom: 5px;
-            border-bottom: 1px solid #eee;
-        }
+        /* TABLA RX */
+        .rx-table { margin-top: 8px; border: 1px solid #e5e7eb; }
+        .rx-table th { background: #C59D5F; color: white; font-size: 6px; padding: 2px; text-transform: uppercase; }
+        .rx-table td { border: 1px solid #e5e7eb; text-align: center; padding: 4px; font-weight: bold; font-size: 9px; }
+        .eye-col { background: #fdfdfd; color: #C59D5F; font-weight: 900; font-size: 8px; width: 15px; }
 
-        .rx-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-        }
+        /* CAJA INFERIOR (ADD + DIP) */
+        .bottom-data { margin-top: 5px; }
+        .data-box { border: 1px solid #ddd; text-align: center; padding: 2px; border-radius: 3px; }
 
-        .rx-table th {
-            text-align: center;
-            font-size: 8px;
-            text-transform: uppercase;
-            color: #6b7280;
-            padding: 4px;
-            border-bottom: 1px solid #C59D5F;
+        /* OBSERVACIONES */
+        .obs-box {
+            margin-top: 5px;
+            border-top: 1px dashed #ccc;
+            padding-top: 3px;
+            min-height: 25px;
         }
 
-        .rx-table td {
-            text-align: center;
-            padding: 8px 4px;
-            border-bottom: 1px solid #e5e7eb;
-            font-weight: bold;
-            font-size: 12px;
-        }
-
-        .eye-col {
-            background-color: #fdfdfd;
-            color: #C59D5F;
-            font-weight: 900;
-            border-right: 1px solid #eee;
-        }
-
-        /* NOTAS Y DIAGNÓSTICO */
-        .notes-section {
-            border: 1px dashed #d1d5db;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            background-color: #fff;
-        }
-
-        /* PIE DE PÁGINA / FIRMA */
-        .footer {
-            position: fixed;
-            bottom: 15mm;
-            left: 15mm;
-            right: 15mm;
-            text-align: center;
-        }
-        .signature-line {
-            width: 180px;
-            border-bottom: 1px solid #1f2937;
-            margin: 0 auto 5px auto;
-        }
-        .specialist-name { font-weight: bold; font-size: 11px; }
-        .specialist-role { font-size: 9px; color: #C59D5F; text-transform: uppercase; letter-spacing: 1px;}
-
-        /* MARCA DE AGUA (OPCIONAL) */
-        .watermark {
-            position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 60px;
-            color: rgba(197, 157, 95, 0.05); /* Dorado muy transparente */
-            font-weight: bold;
-            z-index: -1;
-            white-space: nowrap;
-        }
-        /* AJUSTE EXTRA: Reducir un poco la firma para que no se salga */
-        .footer {
-            position: fixed;
-            bottom: 5mm; /* Más pegado al borde inferior */
-            left: 15mm;
-            right: 15mm;
-            text-align: center;
-        }
+        /* FIRMA */
+        .footer { text-align: center; margin-top: 15px; }
+        .sign-line { border-bottom: 1px solid #000; width: 60%; margin: 0 auto 2px auto; }
+        .specialist { font-size: 7px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    {{-- MARCA DE AGUA --}}
-    <div class="watermark">CENTRO OFTALMOLÓGICO</div>
-
-    {{-- ENCABEZADO MEJORADO --}}
-    <table class="header-table" style="border-bottom: 2px solid #C59D5F; padding-bottom: 10px; margin-bottom: 20px;">
+    <table class="header">
         <tr>
-            {{-- IZQUIERDA: LOGO Y NOMBRE --}}
-            <td width="60%" style="vertical-align: top;">
-                <table width="100%">
-                    <tr>
-                        <td width="50" style="vertical-align: middle;">
-                            @if(isset($logoBase64))
-                                <img src="{{ $logoBase64 }}" style="height: 55px; width: auto;" alt="Logo">
-                            @endif
-                        </td>
-                        <td style="vertical-align: middle; padding-left: 10px;">
-                            <div style="font-size: 16px; font-weight: 900; color: #1f2937; line-height: 1.1; text-transform: uppercase;">
-                                CENTRO<br>OFTALMOLÓGICO
-                            </div>
-                            <div style="font-size: 9px; color: #C59D5F; font-weight: bold; letter-spacing: 2px; margin-top: 2px;">
-                                GRUPO ÓPTICO J&S
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+            <td width="15%">
+                @if(isset($logoBase64))
+                    <img src="{{ $logoBase64 }}" style="height: 30px; width: auto;">
+                @endif
             </td>
-
-            {{-- DERECHA: DATOS DE CONTACTO --}}
-            <td width="40%" style="text-align: right; vertical-align: top;">
-                <div style="font-size: 9px; color: #4b5563; line-height: 1.4;">
-                    <strong>6 de Octubre, Adolfo Mier y Bolívar</strong><br>
-                    Oruro, Bolivia<br>
-                    <span style="color: #C59D5F;">Cel: 61665776</span><br>
-                      grupopticojs@gmail.com
-                </div>
-                <div style="margin-top: 5px; font-size: 11px; font-weight: bold; color: #1f2937; background: #f3f4f6; padding: 3px 8px; display: inline-block; border-radius: 4px;">
-                    RECETA Nº {{ str_pad($prescription->id, 6, '0', STR_PAD_LEFT) }}
+            <td width="50%" style="padding-left: 5px;">
+                <div class="company-title">Consultorio Optometrico</div>
+                <div class="company-sub">J&S</div>
+            </td>
+            <td width="35%">
+                <div class="contact-info">
+                    6 de Octubre, Adolfo Mier<br>
+                    Oruro, Bolivia | Cel: 76141807<br>
+                    <strong style="color:#000; font-size:7px;">RECETA Nº {{ str_pad($prescription->id, 5, '0', STR_PAD_LEFT) }}</strong>
                 </div>
             </td>
         </tr>
     </table>
 
-    {{-- DATOS DEL PACIENTE --}}
-    <div class="patient-box" style="margin-bottom: 15px; padding: 8px; background-color: #f9fafb; border-left: 4px solid #C59D5F;">
-        <table width="100%">
+    <div class="patient-bar">
+        <table>
             <tr>
-                <td width="60%">
-                    <span class="info-label">Paciente</span>
-                    <span class="info-value" style="font-size: 13px;">{{ strtoupper($prescription->patient->name) }}</span>
+                <td width="65%">
+                    <span class="label">Paciente:</span><br>
+                    <span class="value">{{ \Illuminate\Support\Str::limit($prescription->patient->name, 25) }}</span>
                 </td>
                 <td width="15%">
-                    <span class="info-label">Edad</span>
-                    <span class="info-value">{{ $prescription->patient->age }} Años</span>
+                    <span class="label">Edad:</span><br>
+                    <span class="value">{{ $prescription->patient->age }}</span>
                 </td>
-                <td width="25%" style="text-align: right;">
-                    <span class="info-label">Fecha</span>
-                    <span class="info-value">{{ $prescription->created_at->format('d/m/Y') }}</span>
+                <td width="20%" align="right">
+                    <span class="label">Fecha:</span><br>
+                    <span class="value" style="font-size:7px;">{{ $prescription->created_at->format('d/m/y') }}</span>
                 </td>
             </tr>
         </table>
     </div>
 
-    {{-- TABLA DE REFRACCIÓN --}}
-    {{-- TABLA DE REFRACCIÓN CORREGIDA --}}
-    <div class="rx-title">Refracción Lejana</div>
+    <div style="font-size:6px; font-weight:bold; color:#C59D5F; margin-top:5px;">REFRACCIÓN LEJANA</div>
     <table class="rx-table">
         <thead>
             <tr>
-                <th width="10%"></th>
-                <th width="30%">ESFERA</th>
-                <th width="30%">CILINDRO</th>
-                <th width="30%">EJE</th>
+                <th></th>
+                <th>ESF</th>
+                <th>CIL</th>
+                <th>EJE</th>
             </tr>
         </thead>
         <tbody>
-            {{-- OJO DERECHO (OD) --}}
             <tr>
                 <td class="eye-col">OD</td>
-                <td>
-                    @if($prescription->od_esfera == 0)
-                        Neutro
-                    @else
-                        {{-- Aquí agregamos la lógica del signo + --}}
-                        {{ $prescription->od_esfera > 0 ? '+' : '' }}{{ number_format((float)$prescription->od_esfera, 2) }}
-                    @endif
-                </td>
-                <td>
-                    @if($prescription->od_cilindro == 0)
-                        -
-                    @else
-                        {{ $prescription->od_cilindro > 0 ? '+' : '' }}{{ number_format((float)$prescription->od_cilindro, 2) }}
-                    @endif
-                </td>
-                <td>{{ $prescription->od_eje ? $prescription->od_eje . '°' : '-' }}</td>
+                <td>{{ $prescription->od_esfera > 0 ? '+' : '' }}{{ number_format((float)$prescription->od_esfera, 2) }}</td>
+                <td>{{ $prescription->od_cilindro > 0 ? '+' : '' }}{{ number_format((float)$prescription->od_cilindro, 2) }}</td>
+                <td>{{ $prescription->od_eje }}°</td>
             </tr>
-
-            {{-- OJO IZQUIERDO (OI) --}}
             <tr>
                 <td class="eye-col">OI</td>
-                <td>
-                    @if($prescription->oi_esfera == 0)
-                        Neutro
-                    @else
-                        {{ $prescription->oi_esfera > 0 ? '+' : '' }}{{ number_format((float)$prescription->oi_esfera, 2) }}
-                    @endif
-                </td>
-                <td>
-                    @if($prescription->oi_cilindro == 0)
-                        -
-                    @else
-                        {{ $prescription->oi_cilindro > 0 ? '+' : '' }}{{ number_format((float)$prescription->oi_cilindro, 2) }}
-                    @endif
-                </td>
-                <td>{{ $prescription->oi_eje ? $prescription->oi_eje . '°' : '-' }}</td>
+                <td>{{ $prescription->oi_esfera > 0 ? '+' : '' }}{{ number_format((float)$prescription->oi_esfera, 2) }}</td>
+                <td>{{ $prescription->oi_cilindro > 0 ? '+' : '' }}{{ number_format((float)$prescription->oi_cilindro, 2) }}</td>
+                <td>{{ $prescription->oi_eje }}°</td>
             </tr>
         </tbody>
     </table>
 
-    {{-- TABLA DE ADICIÓN (Si aplica) --}}
-    @if($prescription->add_od || $prescription->add_oi)
-        <div class="rx-title" style="margin-top: 15px;">Adición (Lectura)</div>
-        <table class="rx-table">
-            <tbody>
-                <tr>
-                    <td class="eye-col" width="10%">ADD</td>
-                    <td width="45%">
-                        OD: <strong>{{ $prescription->add_od > 0 ? '+' : '' }}{{ number_format((float)$prescription->add_od, 2) }}</strong>
-                    </td>
-                    <td width="45%">
-                        OI: <strong>{{ $prescription->add_oi > 0 ? '+' : '' }}{{ number_format((float)$prescription->add_oi, 2) }}</strong>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    @endif
-
-    {{-- OTROS DATOS --}}
-    <table width="100%" style="margin-top: 15px; margin-bottom: 15px;">
+    <table class="bottom-data">
         <tr>
-            <td width="25%">
-                <span class="info-label">D.I.P.</span>
-                <div style="border: 1px solid #e5e7eb; padding: 6px; text-align: center; border-radius: 4px; font-weight: bold; background: #fff;">
-                    {{ $prescription->dip ?? '--' }} mm
+            <td width="20%">
+                <div class="data-box">
+                    <div class="label">ADD</div>
+                    <div class="value">{{ $prescription->add_od > 0 ? '+' : '' }}{{ number_format((float)$prescription->add_od, 2) }}</div>
                 </div>
             </td>
-            <td width="75%" style="padding-left: 15px;">
-                <span class="info-label">Diagnóstico</span>
-                <div style="border-bottom: 1px dashed #d1d5db; padding: 6px; font-size: 11px;">
-                    {{ $prescription->diagnostico ?? 'General' }}
+
+            <td width="20%" style="padding-left: 5px;">
+                <div class="data-box">
+                    <div class="label">D.I.P.</div>
+                    <div class="value">{{ $prescription->dip }}</div>
+                </div>
+            </td>
+
+            <td width="60%" style="padding-left: 10px; vertical-align: bottom;">
+                <div style="border-bottom: 1px dotted #ccc; font-size: 8px;">
+                    <span style="color:#C59D5F; font-weight:bold;">Dx:</span> {{ $prescription->diagnostico }}
                 </div>
             </td>
         </tr>
     </table>
 
-    {{-- OBSERVACIONES --}}
-    @if($prescription->observaciones)
-        <div class="notes-section" style="background: #fffdf5; border-color: #fcd34d;">
-            <span class="info-label" style="color: #b45309;">Observaciones / Recomendaciones:</span>
-            <p style="margin: 5px 0 0 0; font-style: italic; font-size: 10px; color: #4b5563;">
-                {{ $prescription->observaciones }}
-            </p>
-        </div>
-    @endif
+    <div class="obs-box">
+        <span style="color:#b45309; font-weight:bold; font-size:6px;">OBSERVACIONES:</span>
+        <p style="margin:2px 0; font-style:italic; font-size:8px;">
+            {{ \Illuminate\Support\Str::limit($prescription->observaciones, 100) }}
+        </p>
+    </div>
 
-    {{-- FIRMA --}}
     <div class="footer">
-        <div class="signature-line"></div>
-        {{-- <div class="specialist-name">{{ strtoupper($prescription->user->name) }}</div> --}}
-        <div class="specialist-role" style="font-weight: bold; color: #1f2937;">Especialista en Salud Visual</div>
-        <div style="font-size: 8px; color: #9ca3af; margin-top: 2px;">Grupo Óptico J&S</div>
+        <div class="sign-line"></div>
+        <div class="specialist">ESPECIALISTA EN SALUD VISUAL</div>
     </div>
 
 </body>
