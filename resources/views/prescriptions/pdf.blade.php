@@ -123,50 +123,68 @@
 <body>
 
     {{-- MARCA DE AGUA --}}
-    <div class="watermark">CENTRO ÓPTICO</div>
+    <div class="watermark">CENTRO OFTALMOLÓGICO</div>
 
-    {{-- ENCABEZADO CON LOGO --}}
-    <table class="header-table">
+    {{-- ENCABEZADO MEJORADO --}}
+    <table class="header-table" style="border-bottom: 2px solid #C59D5F; padding-bottom: 10px; margin-bottom: 20px;">
         <tr>
-            <td width="60%" style="vertical-align: middle;">
-                {{-- AQUÍ VA EL LOGO --}}
-                @if(isset($logoBase64))
-                    <img src="{{ $logoBase64 }}" class="logo-img" alt="Logo">
-                @else
-                    {{-- Si no hay logo, mostramos texto estilizado --}}
-                    <div class="company-name text-gold" style="font-size: 24px; line-height: 1;">J & S</div>
-                    <div style="font-size: 10px; letter-spacing: 3px; text-transform: uppercase;">Grupo Óptico</div>
-                @endif
+            {{-- IZQUIERDA: LOGO Y NOMBRE --}}
+            <td width="60%" style="vertical-align: top;">
+                <table width="100%">
+                    <tr>
+                        <td width="50" style="vertical-align: middle;">
+                            @if(isset($logoBase64))
+                                <img src="{{ $logoBase64 }}" style="height: 55px; width: auto;" alt="Logo">
+                            @endif
+                        </td>
+                        <td style="vertical-align: middle; padding-left: 10px;">
+                            <div style="font-size: 16px; font-weight: 900; color: #1f2937; line-height: 1.1; text-transform: uppercase;">
+                                CENTRO<br>OFTALMOLÓGICO
+                            </div>
+                            <div style="font-size: 9px; color: #C59D5F; font-weight: bold; letter-spacing: 2px; margin-top: 2px;">
+                                GRUPO ÓPTICO J&S
+                            </div>
+                        </td>
+                    </tr>
+                </table>
             </td>
-            <td width="40%" style="text-align: right; vertical-align: middle;">
-                <div class="company-name" style="font-size: 10px;">RECETA MÉDICA</div>
-                <div style="font-size: 16px; font-weight: bold; color: #C59D5F;">Nº {{ str_pad($prescription->id, 6, '0', STR_PAD_LEFT) }}</div>
-                <div class="company-details">{{ date('d/m/Y') }}</div>
+
+            {{-- DERECHA: DATOS DE CONTACTO --}}
+            <td width="40%" style="text-align: right; vertical-align: top;">
+                <div style="font-size: 9px; color: #4b5563; line-height: 1.4;">
+                    <strong>6 de Octubre, Adolfo Mier y Bolívar</strong><br>
+                    Oruro, Bolivia<br>
+                    <span style="color: #C59D5F;">📱 61665776</span><br>
+                    ✉️ grupopticojs@gmail.com
+                </div>
+                <div style="margin-top: 5px; font-size: 11px; font-weight: bold; color: #1f2937; background: #f3f4f6; padding: 3px 8px; display: inline-block; border-radius: 4px;">
+                    RECETA Nº {{ str_pad($prescription->id, 6, '0', STR_PAD_LEFT) }}
+                </div>
             </td>
         </tr>
     </table>
 
     {{-- DATOS DEL PACIENTE --}}
-    <div class="patient-box">
+    <div class="patient-box" style="margin-bottom: 15px; padding: 8px; background-color: #f9fafb; border-left: 4px solid #C59D5F;">
         <table width="100%">
             <tr>
-                <td width="65%">
+                <td width="60%">
                     <span class="info-label">Paciente</span>
-                    <span class="info-value">{{ $prescription->patient->name }}</span>
+                    <span class="info-value" style="font-size: 13px;">{{ strtoupper($prescription->patient->name) }}</span>
                 </td>
                 <td width="15%">
                     <span class="info-label">Edad</span>
                     <span class="info-value">{{ $prescription->patient->age }} Años</span>
                 </td>
-                <td width="20%">
-                    <span class="info-label">CI / DNI</span>
-                    <span class="info-value">{{ $prescription->patient->ci }}</span>
+                <td width="25%" style="text-align: right;">
+                    <span class="info-label">Fecha</span>
+                    <span class="info-value">{{ $prescription->created_at->format('d/m/Y') }}</span>
                 </td>
             </tr>
         </table>
     </div>
 
-    {{-- TABLA DE REFRACCIÓN (EL CORAZÓN) --}}
+    {{-- TABLA DE REFRACCIÓN --}}
     <div class="rx-title">Refracción Lejana</div>
     <table class="rx-table">
         <thead>
@@ -207,17 +225,17 @@
     @endif
 
     {{-- OTROS DATOS --}}
-    <table width="100%" style="margin-top: 10px; margin-bottom: 15px;">
+    <table width="100%" style="margin-top: 15px; margin-bottom: 15px;">
         <tr>
-            <td width="30%">
+            <td width="25%">
                 <span class="info-label">D.I.P.</span>
-                <div style="border: 1px solid #ddd; padding: 5px; text-align: center; border-radius: 3px; font-weight: bold;">
+                <div style="border: 1px solid #e5e7eb; padding: 6px; text-align: center; border-radius: 4px; font-weight: bold; background: #fff;">
                     {{ $prescription->dip ?? '--' }} mm
                 </div>
             </td>
-            <td width="70%" style="padding-left: 10px;">
+            <td width="75%" style="padding-left: 15px;">
                 <span class="info-label">Diagnóstico</span>
-                <div style="border-bottom: 1px solid #ddd; padding: 5px; font-size: 11px;">
+                <div style="border-bottom: 1px dashed #d1d5db; padding: 6px; font-size: 11px;">
                     {{ $prescription->diagnostico ?? 'General' }}
                 </div>
             </td>
@@ -226,9 +244,9 @@
 
     {{-- OBSERVACIONES --}}
     @if($prescription->observaciones)
-        <div class="notes-section">
-            <span class="info-label" style="color: #C59D5F;">Observaciones / Recomendaciones:</span>
-            <p style="margin: 5px 0 0 0; font-style: italic; font-size: 10px;">
+        <div class="notes-section" style="background: #fffdf5; border-color: #fcd34d;">
+            <span class="info-label" style="color: #b45309;">Observaciones / Recomendaciones:</span>
+            <p style="margin: 5px 0 0 0; font-style: italic; font-size: 10px; color: #4b5563;">
                 {{ $prescription->observaciones }}
             </p>
         </div>
@@ -237,8 +255,9 @@
     {{-- FIRMA --}}
     <div class="footer">
         <div class="signature-line"></div>
-        <div class="specialist-name">{{ strtoupper($prescription->user->name) }}</div>
-        <div class="specialist-role">Especialista en Salud Visual</div>
+        {{-- <div class="specialist-name">{{ strtoupper($prescription->user->name) }}</div> --}}
+        <div class="specialist-role" style="font-weight: bold; color: #1f2937;">Especialista en Salud Visual</div>
+        <div style="font-size: 8px; color: #9ca3af; margin-top: 2px;">Grupo Óptico J&S</div>
     </div>
 
 </body>
