@@ -34,7 +34,7 @@
                 {{ auth()->user()->branch->name ?? 'Sucursal Central' }}
             </span>
             <span class="text-sm font-serif-display italic text-gray-400">
-                {{ now()->isoFormat('D [de] MMMM, YYYY') }}
+                {{ ucfirst(now()->isoFormat('D [de] MMMM, YYYY')) }}
             </span>
         </div>
     </div>
