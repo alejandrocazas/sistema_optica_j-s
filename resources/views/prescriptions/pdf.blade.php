@@ -14,7 +14,7 @@
             font-family: 'Helvetica', 'Arial', sans-serif;
             margin: 5mm;
             color: #1f2937;
-            font-size: 8px; /* Letra pequeña para formato compacto */
+            font-size: 8px;
             line-height: 1.1;
         }
 
@@ -28,10 +28,11 @@
         /* ENCABEZADO */
         .header td { vertical-align: middle; }
         .company-title { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #111; }
-        .company-sub { font-size: 6px; color: #C59D5F; letter-spacing: 1px; font-weight: bold;}
+        /* J&S más grande y destacado */
+        .company-sub { font-size: 14px; color: #C59D5F; font-weight: bold; margin-left: 5px; }
         .contact-info { font-size: 5px; color: #666; text-align: right; line-height: 1.1; }
 
-        /* CAJA PACIENTE (COMPACTA) */
+        /* CAJA PACIENTE */
         .patient-bar {
             margin-top: 8px;
             background-color: #f3f4f6;
@@ -47,6 +48,15 @@
         .rx-table td { border: 1px solid #e5e7eb; text-align: center; padding: 4px; font-weight: bold; font-size: 9px; }
         .eye-col { background: #fdfdfd; color: #C59D5F; font-weight: 900; font-size: 8px; width: 15px; }
 
+        /* CAJA VACÍA PARA A.V. */
+        .av-box {
+            border: 2px solid #C59D5F; /* Borde más grueso para que se note al imprimir */
+            height: 12px;
+            width: 20px;
+            margin: 0 auto;
+            background: white;
+        }
+
         /* CAJA INFERIOR (ADD + DIP) */
         .bottom-data { margin-top: 5px; }
         .data-box { border: 1px solid #ddd; text-align: center; padding: 2px; border-radius: 3px; }
@@ -59,10 +69,17 @@
             min-height: 25px;
         }
 
-        /* FIRMA */
+        /* FIRMA Y MENSAJE FINAL */
         .footer { text-align: center; margin-top: 15px; }
         .sign-line { border-bottom: 1px solid #000; width: 60%; margin: 0 auto 2px auto; }
         .specialist { font-size: 7px; font-weight: bold; }
+        .reminder {
+            margin-top: 8px;
+            font-size: 6px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #444;
+        }
     </style>
 </head>
 <body>
@@ -71,14 +88,14 @@
         <tr>
             <td width="15%">
                 @if(isset($logoBase64))
-                    <img src="{{ $logoBase64 }}" style="height: 30px; width: auto;">
+                    <img src="{{ $logoBase64 }}" style="height: 35px; width: auto;">
                 @endif
             </td>
-            <td width="50%" style="padding-left: 5px;">
-                <div class="company-title">Consultorio Optometrico</div>
-                <div class="company-sub">J&S</div>
+            <td width="55%" style="padding-left: 5px;">
+                <span class="company-title">CONSULTORIO OPTOMÉTRICO</span>
+                <span class="company-sub">J&S</span>
             </td>
-            <td width="35%">
+            <td width="30%">
                 <div class="contact-info">
                     6 de Octubre, Adolfo Mier<br>
                     Oruro, Bolivia | Cel: 76141807<br>
@@ -93,7 +110,7 @@
             <tr>
                 <td width="65%">
                     <span class="label">Paciente:</span><br>
-                    <span class="value">{{ \Illuminate\Support\Str::limit($prescription->patient->name, 25) }}</span>
+                    <span class="value">{{ \Illuminate\Support\Str::limit($prescription->patient->name, 28) }}</span>
                 </td>
                 <td width="15%">
                     <span class="label">Edad:</span><br>
@@ -112,10 +129,10 @@
         <thead>
             <tr>
                 <th></th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-            </tr>
+                <th width="22%">ESF</th>
+                <th width="22%">CIL</th>
+                <th width="22%">EJE</th>
+                <th width="15%">A.V.</th> </tr>
         </thead>
         <tbody>
             <tr>
@@ -123,13 +140,13 @@
                 <td>{{ $prescription->od_esfera > 0 ? '+' : '' }}{{ number_format((float)$prescription->od_esfera, 2) }}</td>
                 <td>{{ $prescription->od_cilindro > 0 ? '+' : '' }}{{ number_format((float)$prescription->od_cilindro, 2) }}</td>
                 <td>{{ $prescription->od_eje }}°</td>
-            </tr>
+                <td><div class="av-box"></div></td> </tr>
             <tr>
                 <td class="eye-col">OI</td>
                 <td>{{ $prescription->oi_esfera > 0 ? '+' : '' }}{{ number_format((float)$prescription->oi_esfera, 2) }}</td>
                 <td>{{ $prescription->oi_cilindro > 0 ? '+' : '' }}{{ number_format((float)$prescription->oi_cilindro, 2) }}</td>
                 <td>{{ $prescription->oi_eje }}°</td>
-            </tr>
+                <td><div class="av-box"></div></td> </tr>
         </tbody>
     </table>
 
@@ -167,6 +184,10 @@
     <div class="footer">
         <div class="sign-line"></div>
         <div class="specialist">ESPECIALISTA EN SALUD VISUAL</div>
+
+        <div class="reminder">
+            NO OLVIDE TRAER SU RECETA PARA LA REVISIÓN DE SUS LENTES
+        </div>
     </div>
 
 </body>
