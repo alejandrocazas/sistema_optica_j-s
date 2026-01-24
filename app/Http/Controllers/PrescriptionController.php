@@ -21,7 +21,8 @@ class PrescriptionController extends Controller
     // Paso 1: Mostrar formulario (Recibimos el ID del paciente)
     public function create(Patient $patient)
     {
-        return view('prescriptions.create', compact('patient'));
+        $diagnostics = \App\Models\Diagnostic::all();
+        return view('prescriptions.create', compact('patient', 'diagnostics'));
     }
 
     // Paso 2: Guardar la receta

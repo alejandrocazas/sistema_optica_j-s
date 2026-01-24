@@ -98,6 +98,7 @@ Route::get('/dashboard', function () {
     Route::middleware(['role:optometrista'])->group(function () {
         Route::get('atenciones', [PrescriptionController::class, 'index'])->name('prescriptions.index');
         Route::get('atenciones/nueva', [PrescriptionController::class, 'selectPatient'])->name('prescriptions.selectPatient');
+        Route::post('/diagnostics', [App\Http\Controllers\DiagnosticController::class, 'store'])->name('diagnostics.store');
 
         // Gestión de Recetas
         Route::get('patients/{patient}/receta/nueva', [PrescriptionController::class, 'create'])->name('prescriptions.create');

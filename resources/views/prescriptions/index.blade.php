@@ -1,5 +1,5 @@
 <x-app>
-    {{-- Estilos específicos --}}
+    {{-- Estilos específicos y Scripts del Modal --}}
     <style>
         .text-gold { color: #C59D5F; }
         .bg-gold { background-color: #C59D5F; }
@@ -15,6 +15,10 @@
             background: linear-gradient(135deg, #d6ad6d 0%, #b89050 100%);
             box-shadow: 0 4px 6px -1px rgba(197, 157, 95, 0.4);
         }
+        /* Estilos del Modal */
+        #diagnosticModal {
+            transition: opacity 0.3s ease;
+        }
     </style>
 
     {{-- ENCABEZADO --}}
@@ -27,12 +31,22 @@
             <p class="text-gray-500 dark:text-gray-400 text-sm ml-4">Listado completo de todas las consultas realizadas.</p>
         </div>
 
-        <a href="{{ route('prescriptions.selectPatient') }}" class="btn-gold font-bold py-2.5 px-6 rounded-sm shadow-md flex items-center gap-2 transition transform hover:-translate-y-0.5 text-sm uppercase tracking-wider">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Nueva Consulta
-        </a>
+        <div class="flex gap-3">
+            {{-- BOTÓN AGREGAR DIAGNÓSTICO (NUEVO) --}}
+            <button onclick="openModal()" class="bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-neutral-600 font-bold py-2.5 px-4 rounded-sm shadow-sm flex items-center gap-2 transition hover:bg-gray-50 dark:hover:bg-neutral-600 text-sm uppercase tracking-wider">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#C59D5F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Diagnóstico
+            </button>
+
+            <a href="{{ route('prescriptions.selectPatient') }}" class="btn-gold font-bold py-2.5 px-6 rounded-sm shadow-md flex items-center gap-2 transition transform hover:-translate-y-0.5 text-sm uppercase tracking-wider">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Nueva Consulta
+            </a>
+        </div>
     </div>
 
     @if($prescriptions->isEmpty())
@@ -59,7 +73,6 @@
                     <tbody class="divide-y divide-gray-100 dark:divide-neutral-700 text-gray-700 dark:text-gray-300">
                         @foreach($prescriptions as $prescription)
                         <tr class="hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition bg-white dark:bg-neutral-800 group">
-
                             {{-- FECHA --}}
                             <td class="px-6 py-4 text-sm">
                                 <div class="flex items-center gap-3">
@@ -144,4 +157,58 @@
             @endif
         </div>
     @endif
+
+    {{-- MODAL AGREGAR DIAGNÓSTICO --}}
+    <div id="diagnosticModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white dark:bg-neutral-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                <form action="{{ route('diagnostics.store') }}" method="POST">
+                    @csrf
+                    <div class="bg-white dark:bg-neutral-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-[#C59D5F]/10 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-[#C59D5F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white font-serif-display" id="modal-title">
+                                    Nuevo Diagnóstico
+                                </h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                        Agrega un nuevo diagnóstico clínico para que esté disponible en la lista de selección de recetas.
+                                    </p>
+                                    <input type="text" name="name" required placeholder="Ej: Miopía Magna"
+                                           class="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:border-[#C59D5F] focus:ring-1 focus:ring-[#C59D5F]">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-neutral-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-sm border border-transparent shadow-sm px-4 py-2 bg-[#C59D5F] text-base font-medium text-white hover:bg-[#a37f45] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C59D5F] sm:ml-3 sm:w-auto sm:text-sm">
+                            Guardar
+                        </button>
+                        <button type="button" onclick="closeModal()" class="mt-3 w-full inline-flex justify-center rounded-sm border border-gray-300 dark:border-neutral-500 shadow-sm px-4 py-2 bg-white dark:bg-neutral-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- SCRIPTS DEL MODAL --}}
+    <script>
+        function openModal() {
+            document.getElementById('diagnosticModal').classList.remove('hidden');
+        }
+        function closeModal() {
+            document.getElementById('diagnosticModal').classList.add('hidden');
+        }
+    </script>
+
 </x-app>
