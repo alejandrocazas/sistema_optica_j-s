@@ -1,152 +1,172 @@
 <?php
 
 namespace App\Http\Controllers;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Models\Sale;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+
 use Illuminate\Http\Request;
+use App\Models\Sale;
 use App\Models\Product;
+use App\Models\Payment;
+use App\Models\CashRegister;
+use App\Models\Expense;
+use Barryvdh\DomPDF\Facade\Pdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\DB;
 
 class SaleController extends Controller
 {
+    // Vista del POS (Punto de Venta Livewire)
     public function create() {
-    return view('sales.pos');
-}
+        return view('sales.pos');
+    }
 
-// En SaleController.php
+    // Listado de Ventas
+    public function index() {
+        $sales = Sale::with(['patient', 'user'])
+                     ->latest()
+                     ->paginate(20);
 
-public function store(Request $request)
-{
-    // 1. Validación básica
-    $request->validate([
-        'patient_id' => 'required|exists:patients,id',
-        'items' => 'required|array|min:1',
-        'items.*.product_id' => 'required|exists:products,id',
-        'items.*.quantity' => 'required|integer|min:1',
-    ]);
+        // Verificar si hay caja abierta (para alertas visuales)
+        $hasOpenRegister = CashRegister::where('user_id', auth()->id())
+                                       ->where('status', 'abierta')
+                                       ->exists();
 
-    return \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
-        
-        // Obtener la sucursal del usuario actual (o la 1 por defecto)
-        $branchId = auth()->user()->branch_id ?? 1;
+        return view('sales.index', compact('sales', 'hasOpenRegister'));
+    }
 
-        // A. Crear la Venta
-        $sale = Sale::create([
-            'user_id' => auth()->id(),
-            'patient_id' => $request->patient_id,
-            'branch_id' => $branchId, // <--- Importante: Usar la variable
-            'receipt_number' => 'REC-' . time(),
-            'status' => 'laboratorio',
-            'payment_status' => 'pendiente',
-            'total' => 0,
-            'balance' => 0,
-            'paid_amount' => 0,
-            'date' => now(),
+    // Guardar Venta (Backend/API)
+    // NOTA: El POS usa Livewire (PosComponent), este método es para ventas manuales/externas
+    public function store(Request $request)
+    {
+        $request->validate([
+            'patient_id' => 'required|exists:patients,id',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
         ]);
 
-        $totalVenta = 0;
+        return DB::transaction(function () use ($request) {
 
-        // B. Recorrer productos
-        foreach ($request->items as $item) {
-            $product = Product::findOrFail($item['product_id']);
-            
-            // === CORRECCIÓN DE STOCK (Multi-Sucursal) ===
-            
-            // 1. Buscar el stock en la tabla pivote de ESTA sucursal
-            $stockEnSucursal = \Illuminate\Support\Facades\DB::table('branch_product')
-                ->where('branch_id', $branchId)
-                ->where('product_id', $product->id)
-                ->value('stock');
+            $branchId = auth()->user()->branch_id ?? 1;
 
-            // Si no existe el registro en la sucursal, asumimos stock 0
-            if (is_null($stockEnSucursal) || $stockEnSucursal < $item['quantity']) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
-                    'items' => "Stock insuficiente en esta sucursal para: {$product->name}"
+            // Calculamos totales iniciales
+            $totalBruto = 0;
+            $itemsData = [];
+
+            // Validar Stock primero
+            foreach ($request->items as $item) {
+                $product = Product::findOrFail($item['product_id']);
+
+                $stockEnSucursal = DB::table('branch_product')
+                    ->where('branch_id', $branchId)
+                    ->where('product_id', $product->id)
+                    ->value('stock');
+
+                if (is_null($stockEnSucursal) || $stockEnSucursal < $item['quantity']) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'items' => "Stock insuficiente en sucursal para: {$product->name}"
+                    ]);
+                }
+
+                $subtotal = $product->price_sell * $item['quantity']; // Precio de venta
+                $totalBruto += $subtotal;
+
+                $itemsData[] = [
+                    'product' => $product,
+                    'quantity' => $item['quantity'],
+                    'price' => $product->price_sell,
+                    'subtotal' => $subtotal
+                ];
+            }
+
+            // Aplicar Descuento
+            $discount = $request->input('discount', 0);
+            $totalNeto = max(0, $totalBruto - $discount);
+            $paidAmount = $request->input('payment_amount', 0);
+
+            // A. Crear la Venta
+            $sale = Sale::create([
+                'user_id' => auth()->id(),
+                'patient_id' => $request->patient_id,
+                'branch_id' => $branchId,
+                'receipt_number' => 'REC-' . time(),
+                'status' => 'laboratorio',
+
+                // Nuevos campos
+                'has_consultation' => $request->boolean('has_consultation'),
+                'delivery_date' => $request->input('delivery_date'),
+                'observations' => $request->input('observations'),
+
+                // Totales
+                'discount' => $discount,
+                'total' => $totalNeto,
+                'paid_amount' => $paidAmount,
+                'balance' => max(0, $totalNeto - $paidAmount),
+                'payment_status' => ($paidAmount >= $totalNeto) ? 'pagado' : 'parcial',
+            ]);
+
+            // B. Guardar Detalles y Restar Stock
+            foreach ($itemsData as $data) {
+                $sale->details()->create([
+                    'product_id' => $data['product']->id,
+                    'quantity' => $data['quantity'],
+                    'price' => $data['price'],
+                    'subtotal' => $data['subtotal'],
+                ]);
+
+                // Restar en Sucursal
+                DB::table('branch_product')
+                    ->where('branch_id', $branchId)
+                    ->where('product_id', $data['product']->id)
+                    ->decrement('stock', $data['quantity']);
+
+                // Restar Global
+                $data['product']->decrement('stock', $data['quantity']);
+            }
+
+            // C. Registrar Pago
+            if ($paidAmount > 0) {
+                Payment::create([
+                    'sale_id' => $sale->id,
+                    'amount' => $paidAmount,
+                    'method' => $request->input('payment_method', 'Efectivo'),
+                    'created_at' => now()
                 ]);
             }
 
-            // 2. RESTAR STOCK EN LA SUCURSAL (Tabla branch_product)
-            \Illuminate\Support\Facades\DB::table('branch_product')
-                ->where('branch_id', $branchId)
-                ->where('product_id', $product->id)
-                ->decrement('stock', $item['quantity']);
-            
-            // (Opcional) Si quieres mantener un stock global referencial:
-            // $product->decrement('stock', $item['quantity']); 
+            return redirect()->route('sales.index')->with('success', 'Venta registrada correctamente.');
+        });
+    }
 
-            // =============================================
+    // --- IMPRIMIR RECIBO (PDF) ---
+    public function print($id)
+    {
+        $sale = Sale::with(['details.product', 'patient', 'user', 'branch'])->findOrFail($id);
 
-            // 3. Guardar detalle
-            $sale->details()->create([
-                'product_id' => $product->id,
-                'quantity' => $item['quantity'],
-                'price' => $product->price,
-                'subtotal' => $product->price * $item['quantity'],
-            ]);
+        // 1. Generar QR
+        $qrData = "RECIBO: {$sale->receipt_number} | TOTAL: {$sale->total} | FECHA: {$sale->created_at->format('d/m/Y')}";
+        $qrImage = base64_encode(QrCode::format('svg')->size(100)->generate($qrData));
 
-            $totalVenta += ($product->price * $item['quantity']);
+        // 2. Lógica del LOGO (Marca de Agua) - ¡ESTO FALTABA!
+        $path = public_path('images/grupo.jpg'); // Asegúrate que la imagen exista
+        $logoBase64 = null;
+
+        if (file_exists($path)) {
+            $type = pathinfo($path, PATHINFO_EXTENSION);
+            $data = file_get_contents($path);
+            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
         }
 
-        // C. Actualizar Totales y Pagos (Igual que antes)
-        $sale->total = $totalVenta;
-        $anticipo = $request->input('payment_amount', 0);
-        
-        if ($anticipo > 0) {
-            \App\Models\Payment::create([
-                'sale_id' => $sale->id,
-                'amount' => $anticipo,
-                'method' => $request->input('payment_method', 'efectivo'),
-                'created_at' => now()
-            ]);
-            $sale->paid_amount = $anticipo;
-            $sale->payment_status = ($anticipo >= $totalVenta) ? 'pagado' : 'parcial';
-        } else {
-            $sale->payment_status = 'pendiente';
-        }
+        // 3. Generar PDF
+        // Pasamos tanto $qrImage como $logoBase64 a la vista
+        $pdf = Pdf::loadView('sales.receipt', compact('sale', 'qrImage', 'logoBase64'));
 
-        $sale->balance = $totalVenta - $sale->paid_amount;
-        $sale->save();
+        // Ajuste para ticket térmico (80mm ancho aprox)
+        $pdf->setPaper([0, 0, 226.77, 800], 'portrait');
 
-        return redirect()->route('sales.index')->with('success', 'Venta registrada y stock de sucursal actualizado.');
-    });
-}
+        return $pdf->stream('ticket-'.$sale->receipt_number.'.pdf');
+    }
 
-public function index() {
-    // Cambiamos get() por paginate(20)
-    $sales = \App\Models\Sale::with(['patient', 'user']) // Trae datos de paciente y vendedor
-                         ->latest()                      // Ordena por fecha (más nuevo primero)
-                         ->paginate(20);                 // Muestra 20 por página
-
-    
-    // ===> AGREGAR ESTO <===
-    // Verificar si el usuario tiene una caja abierta actualmente
-    $hasOpenRegister = \App\Models\CashRegister::where('user_id', auth()->id())
-                        ->where('status', 'abierta')
-                        ->exists();
-
-    return view('sales.index', compact('sales', 'hasOpenRegister'));
-}
-
-public function print($id)
-{
-    
-    $sale = Sale::with(['details.product', 'patient', 'user', 'branch'])->findOrFail($id);
-
-    // Generamos el QR con la URL pública de la venta o datos clave
-    // Ejemplo: "Venta #123 | Total: 500 | Fecha: ..."
-    $qrData = "RECIBO: {$sale->receipt_number} | TOTAL: {$sale->total}";
-
-    // Convertimos a imagen Base64 para que DomPDF lo entienda
-    $qrImage = base64_encode(QrCode::format('svg')->size(100)->generate($qrData));
-
-    $pdf = Pdf::loadView('sales.receipt', compact('sale', 'qrImage')); // Pasamos la variable
-    $pdf->setPaper([0, 0, 226.77, 1000], 'portrait');
-
-    return $pdf->stream('ticket-'.$sale->receipt_number.'.pdf');
-}
-
-    
-    // CORRECCIÓN 1: Agregamos "Request $request" aquí 👇
+    // --- ANULAR VENTA ---
     public function destroy(Request $request, $id)
     {
         // 1. Validar permiso (Solo Admin)
@@ -158,70 +178,71 @@ public function print($id)
 
         // 2. Bloqueo de seguridad
         if($sale->status === 'entregado') {
-             return back()->with('error', 'No se puede eliminar una venta que ya fue entregada al cliente.');
+             return back()->with('error', 'No se puede eliminar una venta entregada.');
         }
 
-        // 3. Validar que venga la justificación
+        // 3. Justificación obligatoria
         if(!$request->input('reason')) {
             return back()->with('error', 'Es obligatorio indicar el motivo de la anulación.');
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($sale, $request) {
-            
-            // A. RESTAURAR STOCK (En Sucursal y Global)
+        DB::transaction(function () use ($sale, $request) {
+
+            // A. RESTAURAR STOCK
             foreach($sale->details as $detail) {
-                
-                // CORRECCIÓN 2: Restaurar en la Sucursal específica (Tabla Pivote)
-                \Illuminate\Support\Facades\DB::table('branch_product')
-                    ->where('branch_id', $sale->branch_id) // Usamos la sucursal original de la venta
+                // Restaurar en Sucursal
+                DB::table('branch_product')
+                    ->where('branch_id', $sale->branch_id)
                     ->where('product_id', $detail->product_id)
                     ->increment('stock', $detail->quantity);
 
-                // Restaurar Global (Opcional, para mantener sincronía)
+                // Restaurar Global
                 $product = Product::find($detail->product_id);
                 if($product) {
                     $product->increment('stock', $detail->quantity);
                 }
             }
 
-            // B. CORRECCIÓN 3: DEVOLVER DINERO (Crear Egreso de Caja)
+            // B. DEVOLVER DINERO (Egreso de Caja)
             if ($sale->paid_amount > 0) {
-                // Buscamos si el admin tiene caja abierta para registrar la salida
-                $cajaAbierta = \App\Models\CashRegister::where('user_id', auth()->id())
+                $cajaAbierta = CashRegister::where('user_id', auth()->id())
                                 ->where('status', 'abierta')
                                 ->first();
-                
+
                 if ($cajaAbierta) {
-                    \App\Models\Expense::create([
+                    Expense::create([
                         'cash_register_id' => $cajaAbierta->id,
                         'user_id' => auth()->id(),
-                        'amount' => $sale->paid_amount, // El monto que se devuelve
-                        'description' => 'DEVOLUCIÓN: Anulación Venta ' . $sale->receipt_number
+                        'amount' => $sale->paid_amount,
+                        'description' => 'DEVOLUCIÓN: Anulación Venta ' . $sale->receipt_number . '. Motivo: ' . $request->input('reason')
                     ]);
                 }
             }
 
-            // C. Guardar auditoría y borrar
-            $sale->deletion_reason = $request->input('reason');
-            $sale->deleted_by = auth()->id();
-            $sale->status = 'cancelado'; 
-            $sale->save();
+            // C. Auditoría y Borrado Lógico
+            $sale->update([
+                'deletion_reason' => $request->input('reason'),
+                'deleted_by' => auth()->id(),
+                'status' => 'cancelado'
+            ]);
 
             $sale->delete(); // Soft Delete
         });
 
-        return back()->with('success', 'Venta anulada. Stock restaurado y devolución registrada en caja.');
+        return back()->with('success', 'Venta anulada correctamente.');
     }
 
+    // Actualizar Fecha de Entrega
     public function updateDate(Request $request, Sale $sale)
-{
-    $sale->update(['delivery_date' => $request->delivery_date]);
-    return back()->with('success', 'Fecha de entrega actualizada.');
-}
+    {
+        $sale->update(['delivery_date' => $request->delivery_date]);
+        return back()->with('success', 'Fecha de entrega actualizada.');
+    }
 
-public function updateObservations(Request $request, Sale $sale)
-{
-    $sale->update(['observations' => $request->observations]);
-    return back()->with('success', 'Observaciones guardadas.');
-}
+    // Actualizar Observaciones
+    public function updateObservations(Request $request, Sale $sale)
+    {
+        $sale->update(['observations' => $request->observations]);
+        return back()->with('success', 'Observaciones guardadas.');
+    }
 }
