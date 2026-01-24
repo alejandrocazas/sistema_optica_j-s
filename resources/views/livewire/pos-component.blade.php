@@ -4,7 +4,6 @@
         .text-gold { color: #C59D5F; }
         .bg-gold { background-color: #C59D5F; }
         .border-gold { border-color: #C59D5F; }
-        .ring-gold:focus { --tw-ring-color: #C59D5F; }
 
         .btn-gold {
             background: linear-gradient(135deg, #C59D5F 0%, #a37f45 100%);
@@ -128,7 +127,7 @@
                             <button wire:click="$set('selectedPatientName', null); $set('patient_id', null)" class="text-xs text-red-400 hover:text-red-300 underline">Cambiar</button>
                         </div>
 
-                        {{-- NUEVO: CHECKBOX CONSULTA (C/S o S/C) --}}
+                        {{-- CHECKBOX CONSULTA (C/S o S/C) --}}
                         <div class="flex items-center gap-3 mt-2 border-t border-gray-700 pt-2">
                             <label class="inline-flex items-center cursor-pointer">
                                 <input type="checkbox" wire:model="withConsultation" class="sr-only peer">
@@ -211,7 +210,7 @@
                         <span>Bs {{ number_format($total, 2) }}</span>
                     </div>
 
-                    {{-- NUEVO: CAMPO DESCUENTO --}}
+                    {{-- CAMPO DESCUENTO --}}
                     <div class="flex justify-between items-center text-[#C59D5F]">
                         <span class="text-xs uppercase font-bold">Descuento:</span>
                         <div class="flex items-center gap-1 border-b border-[#C59D5F]/50 w-24">
@@ -276,11 +275,93 @@
         </div>
     </div>
 
-    {{-- MODAL RECETA (MANTIENE SU FUNCIONALIDAD) --}}
+    {{-- MODAL RECETA (REDDISEÑADO EN OSCURO Y DORADO) --}}
     <dialog id="modal-receta" class="p-0 rounded-lg shadow-2xl w-[600px] backdrop:bg-black/80 bg-transparent" wire:ignore.self>
-        {{-- ... (El contenido del modal puede mantenerse igual o adaptarse a colores oscuros si prefieres) ... --}}
-        {{-- He dejado el contenido del modal fuera por brevedad, pero asegúrate de que use clases dark: si quieres que combine --}}
-        @include('livewire.partials.modal-receta-dark') {{-- Sugerencia: Mover el modal a un partial o pegar el código anterior adaptado --}}
+        <div class="bg-neutral-900 border border-gray-700 rounded-lg overflow-hidden">
+            {{-- Encabezado Modal --}}
+            <div class="bg-neutral-800 px-4 py-3 flex justify-between items-center border-b border-[#C59D5F]/30">
+                <h3 class="font-bold text-lg flex items-center gap-2 text-[#C59D5F]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    Registrar Receta Externa
+                </h3>
+                <button type="button" onclick="document.getElementById('modal-receta').close()" class="text-gray-400 hover:text-white text-2xl transition">&times;</button>
+            </div>
+
+            <div class="p-6 bg-neutral-900 text-gray-200">
+
+                {{-- ENCABEZADOS TABLA --}}
+                <div class="grid grid-cols-6 gap-2 mb-2 text-center text-[10px] font-bold uppercase text-[#C59D5F] tracking-wider">
+                    <div class="text-left pl-2 text-gray-500">Ojo</div>
+                    <div>Esfera</div>
+                    <div>Cilindro</div>
+                    <div>Eje</div>
+                    <div>Adición</div>
+                    <div>D.I.P</div>
+                </div>
+
+                {{-- FILA OJO DERECHO (OD) --}}
+                <div class="grid grid-cols-6 gap-2 mb-3 items-center">
+                    <div class="font-bold text-[#C59D5F] text-sm pl-2">OD</div>
+
+                    <input wire:model="od_esfera" type="number" step="0.25" placeholder="0.00"
+                        class="w-full p-2 text-center border rounded text-sm bg-neutral-800 border-gray-700 text-white focus:ring-1 focus:ring-[#C59D5F] focus:border-[#C59D5F] outline-none">
+
+                    <input wire:model="od_cilindro" type="number" step="0.25" placeholder="0.00"
+                        class="w-full p-2 text-center border rounded text-sm bg-neutral-800 border-gray-700 text-white focus:ring-1 focus:ring-[#C59D5F] focus:border-[#C59D5F] outline-none">
+
+                    <input wire:model="od_eje" type="number" placeholder="0°"
+                        class="w-full p-2 text-center border rounded text-sm bg-neutral-800 border-gray-700 text-white focus:ring-1 focus:ring-[#C59D5F] focus:border-[#C59D5F] outline-none">
+
+                    <input wire:model="add_od" type="number" step="0.25" placeholder="+0.00"
+                        class="w-full p-2 text-center border rounded text-sm bg-neutral-800 border-gray-700 text-white focus:ring-1 focus:ring-[#C59D5F] focus:border-[#C59D5F] outline-none">
+
+                    <input wire:model="dip" type="number" placeholder="mm"
+                        class="w-full p-2 text-center border rounded text-sm bg-neutral-800 border-gray-700 text-white focus:ring-1 focus:ring-[#C59D5F] focus:border-[#C59D5F] outline-none">
+                </div>
+
+                {{-- FILA OJO IZQUIERDO (OI) --}}
+                <div class="grid grid-cols-6 gap-2 mb-4 items-center">
+                    <div class="font-bold text-white text-sm pl-2">OI</div>
+
+                    <input wire:model="oi_esfera" type="number" step="0.25" placeholder="0.00"
+                        class="w-full p-2 text-center border rounded text-sm bg-neutral-800 border-gray-700 text-white focus:ring-1 focus:ring-[#C59D5F] focus:border-[#C59D5F] outline-none">
+
+                    <input wire:model="oi_cilindro" type="number" step="0.25" placeholder="0.00"
+                        class="w-full p-2 text-center border rounded text-sm bg-neutral-800 border-gray-700 text-white focus:ring-1 focus:ring-[#C59D5F] focus:border-[#C59D5F] outline-none">
+
+                    <input wire:model="oi_eje" type="number" placeholder="0°"
+                        class="w-full p-2 text-center border rounded text-sm bg-neutral-800 border-gray-700 text-white focus:ring-1 focus:ring-[#C59D5F] focus:border-[#C59D5F] outline-none">
+
+                    <input wire:model="add_oi" type="number" step="0.25" placeholder="+0.00"
+                        class="w-full p-2 text-center border rounded text-sm bg-neutral-800 border-gray-700 text-white focus:ring-1 focus:ring-[#C59D5F] focus:border-[#C59D5F] outline-none">
+
+                    <div class="text-center text-xs text-gray-600">-</div>
+                </div>
+
+                {{-- DIAGNÓSTICO Y OBSERVACIONES --}}
+                <div class="grid grid-cols-1 gap-3 mb-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">Diagnóstico (Opcional)</label>
+                        <input wire:model="diagnostico" type="text" class="w-full mt-1 p-2 text-sm border rounded bg-neutral-800 border-gray-700 text-white focus:ring-1 focus:ring-[#C59D5F] focus:border-[#C59D5F] outline-none" placeholder="Ej: Miopía leve...">
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">Observaciones / Tipo de Lente</label>
+                        <textarea wire:model="observaciones_receta" rows="2" class="w-full mt-1 p-2 text-sm border rounded bg-neutral-800 border-gray-700 text-white focus:ring-1 focus:ring-[#C59D5F] focus:border-[#C59D5F] outline-none" placeholder="Ej: Material fotocromático..."></textarea>
+                    </div>
+                </div>
+
+                {{-- BOTONES --}}
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-800">
+                    <button onclick="document.getElementById('modal-receta').close()" class="px-4 py-2 text-gray-400 hover:text-white bg-transparent border border-gray-700 hover:bg-gray-800 rounded font-bold text-xs uppercase tracking-wide transition">
+                        Cancelar
+                    </button>
+                    <button wire:click="savePrescription" class="px-6 py-2 btn-gold rounded font-bold text-xs uppercase tracking-wide shadow-md">
+                        Guardar Receta
+                    </button>
+                </div>
+            </div>
+        </div>
     </dialog>
 
     <script>
