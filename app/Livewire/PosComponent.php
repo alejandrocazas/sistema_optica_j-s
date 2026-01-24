@@ -26,15 +26,15 @@ class PosComponent extends Component
     public $cart = [];
     public $patient_id = null;
     public $selectedPatientName = null;
-    public $withConsultation = false;
+    public $withConsultation = false; // Check de Consulta
 
     // Pago
     public $paymentMethod = 'Efectivo';
-    public $amountPaid = ''; // Usamos vacío para que el placeholder se vea
+    public $amountPaid = '';
 
     // Total
     public $total = 0;
-    public $discount = 0;
+    public $discount = 0; // Variable del Descuento
     public $delivery_date;
     public $observations;
     public $paymentReference = '';
@@ -49,54 +49,40 @@ class PosComponent extends Component
 
     // --- CARRITO ---
     public function addToCart($productId)
-{
-    $product = \App\Models\Product::find($productId);
+    {
+        $product = \App\Models\Product::find($productId);
 
-    // 1. Validar que el producto exista
-    if(!$product) {
-        return;
-    }
+        if(!$product) return;
 
-    // 2. Obtener el stock real de la sucursal (usando el Accessor que creamos antes)
-    $stockDisponible = $product->stock_actual;
+        $stockDisponible = $product->stock_actual;
 
-    // 3. Validar si hay stock inicial (mayor a 0)
-    if($stockDisponible <= 0) {
-        $this->dispatch('error', 'Producto agotado en esta sucursal.'); // O tu sistema de notificaciones
-        return;
-    }
-
-    // 4. Lógica de Agregado al Carrito
-    if(isset($this->cart[$productId])) {
-
-        // VALIDACIÓN CRÍTICA:
-        // Antes de sumar 1, verificamos que no superemos el stock disponible
-        if ($this->cart[$productId]['quantity'] + 1 > $stockDisponible) {
-            $this->dispatch('error', 'No hay suficiente stock. Solo quedan ' . $stockDisponible . ' unidades.');
+        if($stockDisponible <= 0) {
+            $this->dispatch('error', 'Producto agotado en esta sucursal.');
             return;
         }
 
-        $this->cart[$productId]['quantity']++;
-        $this->cart[$productId]['subtotal'] = $this->cart[$productId]['quantity'] * $this->cart[$productId]['price'];
+        if(isset($this->cart[$productId])) {
+            if ($this->cart[$productId]['quantity'] + 1 > $stockDisponible) {
+                $this->dispatch('error', 'No hay suficiente stock. Solo quedan ' . $stockDisponible . ' unidades.');
+                return;
+            }
 
-    } else {
-        // Si es nuevo en el carrito, ya validamos arriba que stock > 0
-        $this->cart[$productId] = [
-            'id' => $product->id,
-            'name' => $product->name,
-            'price' => $product->price_sell,
-            'quantity' => 1,
-            'subtotal' => $product->price_sell,
-            'code' => $product->code
-        ];
+            $this->cart[$productId]['quantity']++;
+            $this->cart[$productId]['subtotal'] = $this->cart[$productId]['quantity'] * $this->cart[$productId]['price'];
+
+        } else {
+            $this->cart[$productId] = [
+                'id' => $product->id,
+                'name' => $product->name,
+                'price' => $product->price_sell,
+                'quantity' => 1,
+                'subtotal' => $product->price_sell,
+                'code' => $product->code
+            ];
+        }
+
+        $this->calculateTotal();
     }
-
-    $this->calculateTotal();
-
-    // Opcional: Limpiar el buscador y enfocar el input de nuevo
-    // $this->searchProduct = '';
-    // $this->dispatch('focus-search');
-}
 
     public function decreaseQuantity($productId)
     {
@@ -128,13 +114,12 @@ class PosComponent extends Component
         $this->searchPatient = '';
     }
 
-    // --- GUARDAR VENTA ---
+    // --- GUARDAR VENTA (AQUÍ ESTÁ LA CORRECCIÓN) ---
     public function saveSale()
     {
         if(empty($this->cart)) return;
         if(!$this->patient_id) return;
 
-        // Validación QR
         if ($this->paymentMethod == 'QR' && empty($this->paymentReference)) {
             $this->dispatch('sale-error', ['message' => 'Debe ingresar el Nro de Referencia del QR.']);
             return;
@@ -144,24 +129,41 @@ class PosComponent extends Component
             // 0. Obtener Sucursal Actual
             $branchId = auth()->user()->branch_id;
 
-            // 1. Crear Venta
+            // 1. Calcular Totales Reales
             $montoPagado = (float)$this->amountPaid;
+            $montoDescuento = (float)$this->discount;
 
+            // Total Final = Total Carrito - Descuento
+            $totalConDescuento = max(0, $this->total - $montoDescuento);
+
+            // 2. Crear Venta
             $sale = Sale::create([
                 'receipt_number' => 'V-'.time(),
                 'user_id' => auth()->id(),
-                'branch_id' => $branchId, // <--- RECOMENDADO: Asegúrate de guardar qué sucursal hizo la venta
+                'branch_id' => $branchId,
                 'patient_id' => $this->patient_id,
-                'total' => $this->total,
+
+                // GUARDAMOS EL TOTAL YA CON EL DESCUENTO APLICADO
+                'total' => $totalConDescuento,
+
+                // GUARDAMOS EL DESCUENTO (IMPORTANTE PARA EL RECIBO)
+                'discount' => $montoDescuento,
+
+                // GUARDAMOS EL CHECK DE CONSULTA
+                'has_consultation' => $this->withConsultation,
+
                 'paid_amount' => $montoPagado,
-                'balance' => max(0, $this->total - $montoPagado),
+
+                // EL SALDO SE CALCULA SOBRE EL TOTAL CON DESCUENTO
+                'balance' => max(0, $totalConDescuento - $montoPagado),
+
                 'status' => 'laboratorio',
-                'payment_status' => ($montoPagado >= $this->total) ? 'pagado' : 'parcial',
+                'payment_status' => ($montoPagado >= $totalConDescuento) ? 'pagado' : 'parcial',
                 'delivery_date' => $this->delivery_date ?: null,
                 'observations' => $this->observations,
             ]);
 
-            // 2. Detalles y Descuento de Stock
+            // 3. Detalles y Descuento de Stock
             foreach($this->cart as $item) {
                 SaleDetail::create([
                     'sale_id' => $sale->id,
@@ -171,20 +173,17 @@ class PosComponent extends Component
                     'subtotal' => $item['subtotal']
                 ]);
 
-                // --- CORRECCIÓN CRÍTICA DE STOCK ---
-
-                // A. Descontar de la Sucursal (Tabla Pivote)
+                // Descontar de la Sucursal
                 DB::table('branch_product')
                     ->where('branch_id', $branchId)
                     ->where('product_id', $item['id'])
                     ->decrement('stock', $item['quantity']);
 
-                // B. Descontar del Global (Opcional, para mantener coherencia con tu PurchaseController)
-                // Si en compras sumas al global, en ventas deberías restar al global también.
+                // Descontar del Global
                 Product::find($item['id'])->decrement('stock', $item['quantity']);
             }
 
-            // 3. Pago
+            // 4. Pago
             if($montoPagado > 0) {
                 Payment::create([
                     'sale_id' => $sale->id,
@@ -194,14 +193,14 @@ class PosComponent extends Component
                 ]);
             }
 
-            // 4. Limpiar
-            $this->reset(['cart', 'total', 'patient_id', 'amountPaid', 'delivery_date', 'observations', 'selectedPatientName', 'paymentReference']);
+            // 5. Limpiar
+            $this->reset(['cart', 'total', 'discount', 'patient_id', 'amountPaid', 'delivery_date', 'observations', 'selectedPatientName', 'paymentReference', 'withConsultation']);
 
-            // 5. Emitir evento
+            // 6. Emitir evento
             $this->dispatch('sale-success', ['saleId' => $sale->id]);
         });
     }
-    // --- RENDERIZADO ---
+
     public function render()
     {
         if(strlen($this->searchProduct) > 0) {
@@ -229,10 +228,7 @@ class PosComponent extends Component
     // --- GUARDAR RECETA ---
     public function savePrescription()
     {
-        if(!$this->patient_id) {
-            // Aquí podrías emitir un error si quisieras
-            return;
-        }
+        if(!$this->patient_id) return;
 
         Prescription::create([
             'patient_id' => $this->patient_id,
@@ -253,7 +249,6 @@ class PosComponent extends Component
         $this->reset(['od_esfera', 'od_cilindro', 'od_eje', 'add_od', 'oi_esfera', 'oi_cilindro', 'oi_eje', 'add_oi', 'dip', 'diagnostico', 'observaciones_receta']);
 
         $this->dispatch('close-prescription-modal');
-        // Usamos otro evento o un mensaje simple para no confundir con la venta
         $this->dispatch('simple-alert', ['message' => 'Receta guardada']);
     }
 }
