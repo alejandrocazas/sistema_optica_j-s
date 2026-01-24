@@ -21,18 +21,20 @@ class PosComponent extends Component
     // Buscadores
     public $searchProduct = '';
     public $searchPatient = '';
-    
+
     // Datos de la Venta
     public $cart = [];
     public $patient_id = null;
     public $selectedPatientName = null;
-    
+    public $withConsultation = false;
+
     // Pago
     public $paymentMethod = 'Efectivo';
     public $amountPaid = ''; // Usamos vacío para que el placeholder se vea
-    
+
     // Total
     public $total = 0;
+    public $discount = 0;
     public $delivery_date;
     public $observations;
     public $paymentReference = '';
@@ -49,7 +51,7 @@ class PosComponent extends Component
     public function addToCart($productId)
 {
     $product = \App\Models\Product::find($productId);
-    
+
     // 1. Validar que el producto exista
     if(!$product) {
         return;
@@ -66,8 +68,8 @@ class PosComponent extends Component
 
     // 4. Lógica de Agregado al Carrito
     if(isset($this->cart[$productId])) {
-        
-        // VALIDACIÓN CRÍTICA: 
+
+        // VALIDACIÓN CRÍTICA:
         // Antes de sumar 1, verificamos que no superemos el stock disponible
         if ($this->cart[$productId]['quantity'] + 1 > $stockDisponible) {
             $this->dispatch('error', 'No hay suficiente stock. Solo quedan ' . $stockDisponible . ' unidades.');
@@ -76,7 +78,7 @@ class PosComponent extends Component
 
         $this->cart[$productId]['quantity']++;
         $this->cart[$productId]['subtotal'] = $this->cart[$productId]['quantity'] * $this->cart[$productId]['price'];
-        
+
     } else {
         // Si es nuevo en el carrito, ya validamos arriba que stock > 0
         $this->cart[$productId] = [
@@ -90,10 +92,10 @@ class PosComponent extends Component
     }
 
     $this->calculateTotal();
-    
+
     // Opcional: Limpiar el buscador y enfocar el input de nuevo
-    // $this->searchProduct = ''; 
-    // $this->dispatch('focus-search'); 
+    // $this->searchProduct = '';
+    // $this->dispatch('focus-search');
 }
 
     public function decreaseQuantity($productId)
@@ -140,7 +142,7 @@ class PosComponent extends Component
 
         DB::transaction(function () {
             // 0. Obtener Sucursal Actual
-            $branchId = auth()->user()->branch_id; 
+            $branchId = auth()->user()->branch_id;
 
             // 1. Crear Venta
             $montoPagado = (float)$this->amountPaid;
@@ -155,10 +157,10 @@ class PosComponent extends Component
                 'balance' => max(0, $this->total - $montoPagado),
                 'status' => 'laboratorio',
                 'payment_status' => ($montoPagado >= $this->total) ? 'pagado' : 'parcial',
-                'delivery_date' => $this->delivery_date ?: null, 
+                'delivery_date' => $this->delivery_date ?: null,
                 'observations' => $this->observations,
             ]);
-            
+
             // 2. Detalles y Descuento de Stock
             foreach($this->cart as $item) {
                 SaleDetail::create([
@@ -188,13 +190,13 @@ class PosComponent extends Component
                     'sale_id' => $sale->id,
                     'amount' => $montoPagado,
                     'method' => $this->paymentMethod,
-                    'reference' => $this->paymentReference 
+                    'reference' => $this->paymentReference
                 ]);
             }
-            
+
             // 4. Limpiar
             $this->reset(['cart', 'total', 'patient_id', 'amountPaid', 'delivery_date', 'observations', 'selectedPatientName', 'paymentReference']);
-            
+
             // 5. Emitir evento
             $this->dispatch('sale-success', ['saleId' => $sale->id]);
         });
@@ -212,7 +214,7 @@ class PosComponent extends Component
         }
 
         $patients = [];
-        if(strlen($this->searchPatient) > 0) { 
+        if(strlen($this->searchPatient) > 0) {
             $patients = Patient::where('name', 'like', '%'.$this->searchPatient.'%')
                         ->orWhere('ci', 'like', '%'.$this->searchPatient.'%')
                         ->take(5)->get();
@@ -252,6 +254,6 @@ class PosComponent extends Component
 
         $this->dispatch('close-prescription-modal');
         // Usamos otro evento o un mensaje simple para no confundir con la venta
-        $this->dispatch('simple-alert', ['message' => 'Receta guardada']); 
+        $this->dispatch('simple-alert', ['message' => 'Receta guardada']);
     }
 }
