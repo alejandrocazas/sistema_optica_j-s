@@ -1,6 +1,5 @@
 <div>
-    {{-- EL DIV PADRE ES OBLIGATORIO EN LIVEWIRE --}}
-
+    {{-- Estilos Específicos --}}
     <style>
         .text-gold { color: #C59D5F; }
         .bg-gold { background-color: #C59D5F; }
@@ -15,29 +14,30 @@
         .btn-gold:hover {
             background: linear-gradient(135deg, #d6ad6d 0%, #b89050 100%);
             box-shadow: 0 4px 12px rgba(197, 157, 95, 0.4);
+            transform: translateY(-1px);
         }
     </style>
 
     <div class="py-6 px-4 sm:px-6 lg:px-8">
 
-        {{-- ENCABEZADO --}}
-        <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4 border-b border-gray-200 dark:border-gray-700 pb-6">
-            <div class="flex items-center gap-3">
-                <div class="bg-gray-900 dark:bg-gray-700 p-3 rounded-lg text-[#C59D5F] shadow-lg">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                </div>
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white uppercase font-serif-display tracking-wide">
-                        Personal
-                    </h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Gestión de contratos y datos de empleados</p>
-                </div>
+        {{-- ENCABEZADO (Diseño idéntico al Dashboard) --}}
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4 border-b border-gray-200 dark:border-gray-700 pb-6">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white font-serif-display tracking-wide">
+                    Personal
+                </h1>
+                <p class="text-gray-500 mt-1 dark:text-gray-400">
+                    Gestión de contratos y datos de empleados.
+                </p>
             </div>
 
-            <button wire:click="create" class="btn-gold font-bold py-2.5 px-6 rounded shadow-md flex items-center gap-2 uppercase text-xs tracking-wider">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                Nuevo Empleado
-            </button>
+            <div class="flex items-center gap-4">
+                {{-- Botón Nuevo Empleado --}}
+                <button wire:click="create" class="btn-gold font-bold py-2.5 px-6 rounded shadow-md flex items-center gap-2 uppercase text-xs tracking-wider">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    NUEVO EMPLEADO
+                </button>
+            </div>
         </div>
 
         {{-- CONTENEDOR PRINCIPAL --}}
@@ -66,22 +66,22 @@
                 </div>
             </div>
 
-            {{-- TABLA --}}
+            {{-- TABLA LUXURY (Negra y Dorada) --}}
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-900 text-[#C59D5F]">
+                <table class="min-w-full divide-y divide-gray-700 dark:divide-gray-700">
+                    <thead class="bg-gray-900">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Cédula</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Empleado</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Sucursal</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Cargo</th>
-                            <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider">Sueldo Base</th>
-                            <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[#C59D5F] uppercase tracking-wider">Cédula</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[#C59D5F] uppercase tracking-wider">Empleado</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[#C59D5F] uppercase tracking-wider">Sucursal</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-[#C59D5F] uppercase tracking-wider">Cargo</th>
+                            <th class="px-6 py-4 text-right text-xs font-bold text-[#C59D5F] uppercase tracking-wider">Sueldo Base</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-[#C59D5F] uppercase tracking-wider">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($employees as $employee)
-                        <tr class="hover:bg-[#C59D5F]/10 dark:hover:bg-[#C59D5F]/5 transition duration-150">
+                        <tr class="hover:bg-[#C59D5F]/5 dark:hover:bg-[#C59D5F]/5 transition duration-150">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500 dark:text-gray-400">
                                 {{ $employee->ci }}
                             </td>
@@ -104,7 +104,7 @@
                                 <button wire:click="edit({{ $employee->id }})" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-3 transition transform hover:scale-110" title="Editar">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </button>
-                                <button wire:click="delete({{ $employee->id }})" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition transform hover:scale-110" onclick="confirm('¿Estás seguro de desactivar este empleado?') || event.stopImmediatePropagation()" title="Desactivar">
+                                <button wire:click="delete({{ $employee->id }})" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition transform hover:scale-110" title="Desactivar">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             </td>
@@ -135,55 +135,51 @@
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                 <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity"></div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
                 <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-gray-200 dark:border-gray-700">
 
                     <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <div class="sm:flex sm:items-start">
-                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                                <h3 class="text-lg leading-6 font-bold text-gray-900 dark:text-white uppercase tracking-wide border-b border-gray-200 dark:border-gray-700 pb-2 mb-4">
-                                    {{ $employeeId ? 'Editar Empleado' : 'Registrar Nuevo Empleado' }}
-                                </h3>
-                                <div class="grid grid-cols-1 gap-y-4">
-                                    <div>
-                                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Nombre Completo</label>
-                                        <input type="text" wire:model="name" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
-                                        @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">C.I. / Documento</label>
-                                            <input type="text" wire:model="ci" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
-                                            @error('ci') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Cargo</label>
-                                            <input type="text" wire:model="position" placeholder="Ej: Vendedor" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
-                                            @error('position') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                                        </div>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Sucursal</label>
-                                            <select wire:model="branch_id" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
-                                                <option value="">Seleccione...</option>
-                                                @foreach($branches as $branch)
-                                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                                @endforeach
-                                            </select>
-                                            @error('branch_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Sueldo Base (Bs)</label>
-                                            <input type="number" step="0.01" wire:model="base_salary" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
-                                            @error('base_salary') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Fecha de Ingreso</label>
-                                        <input type="date" wire:model="hiring_date" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
-                                    </div>
+                        <h3 class="text-lg leading-6 font-bold text-gray-900 dark:text-white uppercase tracking-wide border-b border-gray-200 dark:border-gray-700 pb-2 mb-4">
+                            {{ $employeeId ? 'Editar Empleado' : 'Registrar Nuevo Empleado' }}
+                        </h3>
+
+                        <div class="grid grid-cols-1 gap-y-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Nombre Completo</label>
+                                <input type="text" wire:model="name" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
+                                @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">C.I.</label>
+                                    <input type="text" wire:model="ci" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
+                                    @error('ci') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                 </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Cargo</label>
+                                    <input type="text" wire:model="position" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
+                                    @error('position') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Sucursal</label>
+                                    <select wire:model="branch_id" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
+                                        <option value="">Seleccione...</option>
+                                        @foreach($branches as $branch)
+                                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('branch_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Sueldo Base (Bs)</label>
+                                    <input type="number" step="0.01" wire:model="base_salary" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
+                                    @error('base_salary') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Fecha de Ingreso</label>
+                                <input type="date" wire:model="hiring_date" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
                             </div>
                         </div>
                     </div>
@@ -200,4 +196,19 @@
         </div>
         @endif
     </div>
+
+    {{-- SCRIPTS PARA SWEETALERT --}}
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('swal', (data) => {
+                Swal.fire({
+                    title: data[0].title,
+                    text: data[0].text,
+                    icon: data[0].icon,
+                    confirmButtonColor: '#C59D5F',
+                    confirmButtonText: 'Aceptar'
+                });
+            });
+        });
+    </script>
 </div>

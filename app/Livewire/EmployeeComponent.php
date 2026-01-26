@@ -79,7 +79,12 @@ class EmployeeComponent extends Component
 
         $this->closeModal();
         $this->resetInputFields();
-        $this->dispatch('simple-alert', ['message' => 'Empleado guardado correctamente.']);
+        // DISPARAR ALERTA DE ÉXITO
+        this->dispatch('swal', [
+        'title' => '¡Excelente!',
+        'text' => 'El empleado se ha guardado correctamente.',
+        'icon' => 'success'
+        ]);
     }
 
     // --- EDITAR ---
@@ -103,6 +108,11 @@ class EmployeeComponent extends Component
         $employee = Employee::find($id);
         $employee->is_active = false; // Soft delete lógico
         $employee->save();
-        $this->dispatch('simple-alert', ['message' => 'Empleado desactivado.']);
+        // DISPARAR ALERTA DE ELIMINACIÓN
+        $this->dispatch('swal', [
+        'title' => 'Desactivado',
+        'text' => 'El empleado ha sido dado de baja.',
+        'icon' => 'warning'
+    ]);
     }
 }
