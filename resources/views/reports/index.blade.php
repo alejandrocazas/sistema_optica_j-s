@@ -107,7 +107,6 @@
 
     {{-- GRID DE INDICADORES (KPIs) --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-
         {{-- Card 1: Ventas --}}
         <div class="bg-white dark:bg-neutral-800 p-6 rounded-sm shadow-md border-l-4 border-blue-500 relative overflow-hidden group">
             <div class="relative z-10">
@@ -170,6 +169,8 @@
                         <th class="px-6 py-4 text-left font-bold">Fecha</th>
                         <th class="px-6 py-4 text-left font-bold">Comprobante</th>
                         <th class="px-6 py-4 text-left font-bold">Cliente</th>
+                        {{-- NUEVA COLUMNA: ESTADO --}}
+                        <th class="px-6 py-4 text-center font-bold">Estado Entrega</th>
                         <th class="px-6 py-4 text-right font-bold">Total Venta</th>
                         <th class="px-6 py-4 text-right font-bold">Monto Pagado</th>
                     </tr>
@@ -186,6 +187,32 @@
                         <td class="px-6 py-4 font-bold text-gray-800 dark:text-white">
                             {{ $sale->patient->name ?? 'Cliente General' }}
                         </td>
+
+                        {{-- NUEVA COLUMNA: LÓGICA DE ESTADO --}}
+                        <td class="px-6 py-4 text-center">
+                            @if($sale->status === 'entregado')
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    Entregado
+                                </span>
+                            @elseif($sale->status === 'cancelado')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800">
+                                    Cancelado
+                                </span>
+                            @else
+                                <div class="flex flex-col items-center">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                                        Pendiente
+                                    </span>
+                                    @if($sale->delivery_date)
+                                        <span class="text-[10px] text-gray-400 mt-1">
+                                            Para: {{ $sale->delivery_date->format('d/m') }}
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
+                        </td>
+
                         <td class="px-6 py-4 text-right font-bold text-gray-800 dark:text-white">
                             Bs {{ number_format($sale->total, 2) }}
                         </td>
@@ -202,7 +229,7 @@
 
                     @if($sales->isEmpty())
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                             <div class="flex flex-col items-center">
                                 <div class="p-4 bg-gray-50 dark:bg-neutral-900 rounded-full mb-3">
                                     <svg class="w-10 h-10 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>

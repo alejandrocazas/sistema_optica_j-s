@@ -16,6 +16,7 @@ use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\InventoryController;
 use Illuminate\Support\Facades\DB;
+use App\Livewire\PayrollComponent;
 
 // Modelos (Para el dashboard)
 use App\Models\Sale;
@@ -115,6 +116,7 @@ Route::get('/dashboard', function () {
         // Usuarios
         Route::resource('users', UserController::class);
         Route::resource('branches', \App\Http\Controllers\BranchController::class);
+        Route::get('/personal-y-planillas', PayrollComponent::class)->name('payroll.index');
 
         // Inventario (Productos y Categorías)
         Route::resource('products', ProductController::class);
