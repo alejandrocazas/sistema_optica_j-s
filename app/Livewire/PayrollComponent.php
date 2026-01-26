@@ -116,6 +116,6 @@ class PayrollComponent extends Component
     {
         return view('livewire.payroll-component', [
             'branches' => Branch::all()
-        ]);
+        ])->layout('layouts.app'); // <--- AGREGA ESTA FLECHA Y EL LAYOUT
     }
 }
