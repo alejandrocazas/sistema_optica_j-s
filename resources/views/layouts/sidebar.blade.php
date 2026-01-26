@@ -168,7 +168,6 @@
             </li>
         </ul>
     </li>
-@endif
                     @endif
 
                     {{-- CONFIGURACIÓN --}}
