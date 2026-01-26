@@ -1,5 +1,6 @@
-<x-app>
-    {{-- 1. ESTILOS DEL TEMA LUXURY --}}
+<div>
+    {{-- EL DIV PADRE OBLIGATORIO --}}
+
     <style>
         .text-gold { color: #C59D5F; }
         .bg-gold { background-color: #C59D5F; }
@@ -7,7 +8,6 @@
         .focus-gold:focus { --tw-ring-color: #C59D5F; border-color: #C59D5F; }
         .font-serif-display { font-family: 'Playfair Display', serif; }
 
-        /* Botón Dorado con Gradiente */
         .btn-gold {
             background: linear-gradient(135deg, #C59D5F 0%, #a37f45 100%);
             color: white;
@@ -20,194 +20,172 @@
         }
     </style>
 
-    {{-- 2. ENCABEZADO (IGUAL AL DASHBOARD) --}}
-    <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4 border-b border-gray-200 pb-6">
-        <div>
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-white font-serif-display tracking-wide">
-                Planilla de Sueldos
-            </h1>
-            <p class="text-gray-500 mt-1 dark:text-gray-400">
-                Gestión de pagos y asistencia del personal.
-            </p>
-        </div>
-
-        <div class="flex flex-col items-end gap-2">
-            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest bg-gray-900 text-[#C59D5F] dark:bg-gray-700 shadow-md">
-                <svg class="w-3 h-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                {{ auth()->user()->branch->name ?? 'Administración Central' }}
-            </span>
-            <span class="text-sm font-serif-display italic text-gray-400">
-                {{ ucfirst(now()->isoFormat('D [de] MMMM, YYYY')) }}
-            </span>
-        </div>
-    </div>
-
-    {{-- 3. BARRA DE FILTROS Y CONFIGURACIÓN --}}
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8 border-l-4 border-[#C59D5F]">
-        <div class="flex flex-col lg:flex-row gap-6 justify-between items-end">
-
-            {{-- Selectores --}}
-            <div class="flex flex-wrap gap-4 w-full lg:w-auto">
-                {{-- Sucursal --}}
-                <div class="w-full sm:w-auto">
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Sucursal</label>
-                    <select wire:model.live="branch_id" class="w-full sm:w-48 p-2.5 border border-gray-200 rounded bg-gray-50 text-sm focus:ring-1 focus-gold outline-none">
-                        <option value="">-- TODAS --</option>
-                        @foreach($branches as $branch)
-                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- Mes --}}
-                <div class="w-full sm:w-auto">
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Mes</label>
-                    <select wire:model.live="selectedMonth" class="w-full sm:w-32 p-2.5 border border-gray-200 rounded bg-gray-50 text-sm font-bold focus:ring-1 focus-gold outline-none">
-                        <option value="1">Enero</option>
-                        <option value="2">Febrero</option>
-                        <option value="3">Marzo</option>
-                        <option value="4">Abril</option>
-                        <option value="5">Mayo</option>
-                        <option value="6">Junio</option>
-                        <option value="7">Julio</option>
-                        <option value="8">Agosto</option>
-                        <option value="9">Septiembre</option>
-                        <option value="10">Octubre</option>
-                        <option value="11">Noviembre</option>
-                        <option value="12">Diciembre</option>
-                    </select>
-                </div>
-
-                {{-- Año --}}
-                <div class="w-full sm:w-auto">
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Año</label>
-                    <input type="number" wire:model.live="selectedYear" class="w-full sm:w-24 p-2.5 border border-gray-200 rounded bg-gray-50 text-sm focus:ring-1 focus-gold outline-none">
-                </div>
+    <div class="p-6">
+        {{-- ENCABEZADO --}}
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4 border-b border-gray-200 pb-6">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white font-serif-display tracking-wide">
+                    Planilla de Sueldos
+                </h1>
+                <p class="text-gray-500 mt-1 dark:text-gray-400">
+                    Gestión de pagos y asistencia del personal.
+                </p>
             </div>
 
-            {{-- Info Informativa --}}
-            <div class="text-right text-sm text-gray-500 bg-gray-50 p-3 rounded border border-gray-100">
-                <p>ℹ️ <strong>Multa Atraso:</strong> <span class="text-[#C59D5F] font-bold">Bs {{ $penaltyPerLate }}</span></p>
-                <p>ℹ️ <strong>Falta:</strong> <span class="text-red-500 font-bold">1 Día Haber (Sueldo/30)</span></p>
+            <div class="flex flex-col items-end gap-2">
+                <span class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest bg-gray-900 text-[#C59D5F] dark:bg-gray-700 shadow-md">
+                    <svg class="w-3 h-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    {{ auth()->user()->branch->name ?? 'Administración Central' }}
+                </span>
+                <span class="text-sm font-serif-display italic text-gray-400">
+                    {{ ucfirst(now()->isoFormat('D [de] MMMM, YYYY')) }}
+                </span>
             </div>
         </div>
-    </div>
 
-    {{-- 4. TARJETAS DE RESUMEN (Cálculo en vivo) --}}
-    @php
-        $totalBase = 0;
-        $totalDescuentos = 0;
-        $totalPagable = 0;
-        foreach($payrollData as $data) {
-            $totalBase += $data['base_salary'];
-            $desc = ($data['lates'] * $penaltyPerLate) + ($data['absences'] * ($data['base_salary']/30));
-            $totalDescuentos += $desc;
-            $totalPagable += ($data['base_salary'] - $desc + $data['bonuses']);
-        }
-    @endphp
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {{-- Card Total --}}
-        <div class="bg-white p-5 rounded-lg shadow border-t-4 border-gray-800">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Planilla (Base)</p>
-            <p class="text-2xl font-bold text-gray-800 font-serif-display">Bs {{ number_format($totalBase, 2) }}</p>
+        {{-- BARRA DE FILTROS --}}
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8 border-l-4 border-[#C59D5F]">
+            <div class="flex flex-col lg:flex-row gap-6 justify-between items-end">
+                <div class="flex flex-wrap gap-4 w-full lg:w-auto">
+                    <div class="w-full sm:w-auto">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Sucursal</label>
+                        <select wire:model.live="branch_id" class="w-full sm:w-48 p-2.5 border border-gray-200 rounded bg-gray-50 text-sm focus:ring-1 focus-gold outline-none">
+                            <option value="">-- TODAS --</option>
+                            @foreach($branches as $branch)
+                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="w-full sm:w-auto">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Mes</label>
+                        <select wire:model.live="selectedMonth" class="w-full sm:w-32 p-2.5 border border-gray-200 rounded bg-gray-50 text-sm font-bold focus:ring-1 focus-gold outline-none">
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </div>
+                    <div class="w-full sm:w-auto">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Año</label>
+                        <input type="number" wire:model.live="selectedYear" class="w-full sm:w-24 p-2.5 border border-gray-200 rounded bg-gray-50 text-sm focus:ring-1 focus-gold outline-none">
+                    </div>
+                </div>
+                <div class="text-right text-sm text-gray-500 bg-gray-50 p-3 rounded border border-gray-100">
+                    <p>ℹ️ <strong>Multa Atraso:</strong> <span class="text-[#C59D5F] font-bold">Bs {{ $penaltyPerLate }}</span></p>
+                    <p>ℹ️ <strong>Falta:</strong> <span class="text-red-500 font-bold">1 Día Haber (Sueldo/30)</span></p>
+                </div>
+            </div>
         </div>
 
-        {{-- Card Descuentos --}}
-        <div class="bg-white p-5 rounded-lg shadow border-t-4 border-red-500">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Descuentos</p>
-            <p class="text-2xl font-bold text-red-600 font-serif-display">- Bs {{ number_format($totalDescuentos, 2) }}</p>
+        {{-- TARJETAS DE RESUMEN --}}
+        @php
+            $totalBase = 0;
+            $totalDescuentos = 0;
+            $totalPagable = 0;
+            foreach($payrollData as $data) {
+                $totalBase += $data['base_salary'];
+                $desc = ($data['lates'] * $penaltyPerLate) + ($data['absences'] * ($data['base_salary']/30));
+                $totalDescuentos += $desc;
+                $totalPagable += ($data['base_salary'] - $desc + $data['bonuses']);
+            }
+        @endphp
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-5 rounded-lg shadow border-t-4 border-gray-800">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Planilla (Base)</p>
+                <p class="text-2xl font-bold text-gray-800 font-serif-display">Bs {{ number_format($totalBase, 2) }}</p>
+            </div>
+            <div class="bg-white p-5 rounded-lg shadow border-t-4 border-red-500">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Descuentos</p>
+                <p class="text-2xl font-bold text-red-600 font-serif-display">- Bs {{ number_format($totalDescuentos, 2) }}</p>
+            </div>
+            <div class="bg-white p-5 rounded-lg shadow border-t-4 border-[#C59D5F]">
+                <p class="text-xs font-bold text-[#C59D5F] uppercase tracking-widest">Total a Pagar</p>
+                <p class="text-2xl font-bold text-gray-900 font-serif-display">Bs {{ number_format($totalPagable, 2) }}</p>
+            </div>
         </div>
 
-        {{-- Card Líquido --}}
-        <div class="bg-white p-5 rounded-lg shadow border-t-4 border-[#C59D5F]">
-            <p class="text-xs font-bold text-[#C59D5F] uppercase tracking-widest">Total a Pagar</p>
-            <p class="text-2xl font-bold text-gray-900 font-serif-display">Bs {{ number_format($totalPagable, 2) }}</p>
-        </div>
-    </div>
-
-    {{-- 5. TABLA DE EMPLEADOS --}}
-    <div class="bg-white dark:bg-gray-800 shadow-xl rounded-lg overflow-hidden border border-gray-100">
-        <div class="overflow-x-auto">
-            <table class="min-w-full text-sm text-left">
-                <thead class="bg-gray-900 text-gray-100 uppercase font-medium text-xs tracking-wider">
-                    <tr>
-                        <th class="px-6 py-4">Empleado</th>
-                        <th class="px-6 py-4 text-right">Sueldo Base</th>
-                        <th class="px-6 py-4 text-center bg-[#C59D5F]/20 text-[#C59D5F]">Atrasos</th>
-                        <th class="px-6 py-4 text-center bg-red-900/20 text-red-400">Faltas (Días)</th>
-                        <th class="px-6 py-4 text-center bg-green-900/20 text-green-400">Bonos</th>
-                        <th class="px-6 py-4 text-right">Líquido Pagable</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
-                    @forelse($payrollData as $id => $data)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition duration-150">
-                        <td class="px-6 py-4">
-                            <div class="font-bold text-gray-900 dark:text-white text-base">{{ $data['name'] }}</div>
-                            <div class="text-xs text-[#C59D5F] uppercase tracking-wide">{{ $data['position'] }}</div>
-                        </td>
-
-                        <td class="px-6 py-4 text-right font-mono font-bold">
-                            {{ number_format($data['base_salary'], 2) }}
-                        </td>
-
-                        {{-- INPUTS --}}
-                        <td class="px-6 py-4 text-center bg-[#C59D5F]/5">
-                            <input type="number" min="0" wire:model.live="payrollData.{{ $id }}.lates"
-                                   class="w-20 text-center border-gray-300 rounded focus:ring-[#C59D5F] focus:border-[#C59D5F] text-gray-900 font-bold">
-                            <div class="text-[10px] text-red-500 mt-1 font-bold">
-                                -{{ number_format($data['lates'] * $penaltyPerLate, 0) }} Bs
-                            </div>
-                        </td>
-
-                        <td class="px-6 py-4 text-center bg-red-50">
-                            <input type="number" min="0" wire:model.live="payrollData.{{ $id }}.absences"
-                                   class="w-20 text-center border-gray-300 rounded focus:ring-red-500 focus:border-red-500 text-gray-900 font-bold">
-                            <div class="text-[10px] text-red-500 mt-1 font-bold">
-                                @php $dayValue = $data['base_salary']/30; @endphp
-                                -{{ number_format($data['absences'] * $dayValue, 2) }} Bs
-                            </div>
-                        </td>
-
-                        <td class="px-6 py-4 text-center">
-                            <input type="number" min="0" wire:model.live="payrollData.{{ $id }}.bonuses"
-                                   class="w-24 text-center border-gray-300 rounded focus:ring-green-500 focus:border-green-500 text-gray-900 font-bold">
-                        </td>
-
-                        {{-- TOTAL INDIVIDUAL --}}
-                        <td class="px-6 py-4 text-right">
-                            @php
-                                $discountL = $data['lates'] * $penaltyPerLate;
-                                $discountA = $data['absences'] * ($data['base_salary']/30);
-                                $total = $data['base_salary'] - $discountL - $discountA + $data['bonuses'];
-                            @endphp
-                            <span class="text-xl font-serif-display font-bold {{ $total < 0 ? 'text-red-600' : 'text-gray-900' }}">
-                                Bs {{ number_format(max(0, $total), 2) }}
-                            </span>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
-                            <div class="flex flex-col items-center justify-center">
-                                <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+        {{-- TABLA DE EMPLEADOS --}}
+        <div class="bg-white dark:bg-gray-800 shadow-xl rounded-lg overflow-hidden border border-gray-100">
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-left">
+                    <thead class="bg-gray-900 text-gray-100 uppercase font-medium text-xs tracking-wider">
+                        <tr>
+                            <th class="px-6 py-4">Empleado</th>
+                            <th class="px-6 py-4 text-right">Sueldo Base</th>
+                            <th class="px-6 py-4 text-center bg-[#C59D5F]/20 text-[#C59D5F]">Atrasos</th>
+                            <th class="px-6 py-4 text-center bg-red-900/20 text-red-400">Faltas (Días)</th>
+                            <th class="px-6 py-4 text-center bg-green-900/20 text-green-400">Bonos</th>
+                            <th class="px-6 py-4 text-right">Líquido Pagable</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
+                        @forelse($payrollData as $id => $data)
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition duration-150">
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-gray-900 dark:text-white text-base">{{ $data['name'] }}</div>
+                                <div class="text-xs text-[#C59D5F] uppercase tracking-wide">{{ $data['position'] }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-right font-mono font-bold">
+                                {{ number_format($data['base_salary'], 2) }}
+                            </td>
+                            <td class="px-6 py-4 text-center bg-[#C59D5F]/5">
+                                <input type="number" min="0" wire:model.live="payrollData.{{ $id }}.lates"
+                                       class="w-20 text-center border-gray-300 rounded focus:ring-[#C59D5F] focus:border-[#C59D5F] text-gray-900 font-bold">
+                                <div class="text-[10px] text-red-500 mt-1 font-bold">
+                                    -{{ number_format($data['lates'] * $penaltyPerLate, 0) }} Bs
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-center bg-red-50">
+                                <input type="number" min="0" wire:model.live="payrollData.{{ $id }}.absences"
+                                       class="w-20 text-center border-gray-300 rounded focus:ring-red-500 focus:border-red-500 text-gray-900 font-bold">
+                                <div class="text-[10px] text-red-500 mt-1 font-bold">
+                                    @php $dayValue = $data['base_salary']/30; @endphp
+                                    -{{ number_format($data['absences'] * $dayValue, 2) }} Bs
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <input type="number" min="0" wire:model.live="payrollData.{{ $id }}.bonuses"
+                                       class="w-24 text-center border-gray-300 rounded focus:ring-green-500 focus:border-green-500 text-gray-900 font-bold">
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                @php
+                                    $discountL = $data['lates'] * $penaltyPerLate;
+                                    $discountA = $data['absences'] * ($data['base_salary']/30);
+                                    $total = $data['base_salary'] - $discountL - $discountA + $data['bonuses'];
+                                @endphp
+                                <span class="text-xl font-serif-display font-bold {{ $total < 0 ? 'text-red-600' : 'text-gray-900' }}">
+                                    Bs {{ number_format(max(0, $total), 2) }}
+                                </span>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                                 <p>No hay empleados registrados en esta sucursal.</p>
                                 <a href="{{ route('employees.index') }}" class="text-[#C59D5F] font-bold mt-2 hover:underline">Registrar Empleados</a>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- BOTÓN GUARDAR --}}
+        <div class="mt-8 flex justify-end">
+            <button wire:click="savePayroll" class="btn-gold font-bold py-4 px-10 rounded shadow-lg text-sm uppercase tracking-wider flex items-center gap-3">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                GUARDAR PLANILLA DE {{ strtoupper(\Carbon\Carbon::create()->month($selectedMonth)->monthName) }}
+            </button>
         </div>
     </div>
-
-    {{-- 6. BOTÓN DE ACCIÓN FLOTANTE O INFERIOR --}}
-    <div class="mt-8 flex justify-end">
-        <button wire:click="savePayroll" class="btn-gold font-bold py-4 px-10 rounded shadow-lg text-sm uppercase tracking-wider flex items-center gap-3">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-            GUARDAR PLANILLA DE {{ strtoupper(\Carbon\Carbon::create()->month($selectedMonth)->monthName) }}
-        </button>
-    </div>
-</x-app>
+</div>

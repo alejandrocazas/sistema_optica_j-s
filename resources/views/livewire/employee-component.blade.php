@@ -1,5 +1,6 @@
-<x-app>
-    {{-- ESTILOS PROPIOS (Si no están globales) --}}
+<div>
+    {{-- EL DIV PADRE ES OBLIGATORIO EN LIVEWIRE --}}
+
     <style>
         .text-gold { color: #C59D5F; }
         .bg-gold { background-color: #C59D5F; }
@@ -129,7 +130,7 @@
             </div>
         </div>
 
-        {{-- MODAL CREAR / EDITAR (Compatible con Dark Mode) --}}
+        {{-- MODAL CREAR / EDITAR --}}
         @if($isOpen)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -144,14 +145,11 @@
                                     {{ $employeeId ? 'Editar Empleado' : 'Registrar Nuevo Empleado' }}
                                 </h3>
                                 <div class="grid grid-cols-1 gap-y-4">
-                                    {{-- Nombre --}}
                                     <div>
                                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Nombre Completo</label>
                                         <input type="text" wire:model="name" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
                                         @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                     </div>
-
-                                    {{-- CI y Cargo --}}
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">C.I. / Documento</label>
@@ -164,8 +162,6 @@
                                             @error('position') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                         </div>
                                     </div>
-
-                                    {{-- Sucursal y Sueldo --}}
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Sucursal</label>
@@ -183,13 +179,10 @@
                                             @error('base_salary') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                         </div>
                                     </div>
-
-                                    {{-- Fecha Ingreso --}}
                                     <div>
                                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Fecha de Ingreso</label>
                                         <input type="date" wire:model="hiring_date" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-[#C59D5F] focus:border-[#C59D5F] sm:text-sm">
                                     </div>
-
                                 </div>
                             </div>
                         </div>
@@ -207,4 +200,4 @@
         </div>
         @endif
     </div>
-</x-app>
+</div>
