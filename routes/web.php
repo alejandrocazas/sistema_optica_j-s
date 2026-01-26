@@ -117,6 +117,7 @@ Route::get('/dashboard', function () {
         Route::resource('users', UserController::class);
         Route::resource('branches', \App\Http\Controllers\BranchController::class);
         Route::get('/personal-y-planillas', PayrollComponent::class)->name('payroll.index');
+        Route::get('/employees', App\Livewire\EmployeeComponent::class)->name('employees.index');
 
         // Inventario (Productos y Categorías)
         Route::resource('products', ProductController::class);
