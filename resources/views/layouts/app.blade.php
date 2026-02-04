@@ -24,7 +24,7 @@
     <div class="flex h-screen overflow-hidden">
 
         <aside class="hidden md:flex md:w-72 md:flex-col fixed inset-y-0 z-50 bg-neutral-900 border-r border-gray-800">
-            @include('components.sidebar')
+            @include('layouts.sidebar')
         </aside>
 
         <div class="flex flex-col flex-1 md:pl-72 transition-all duration-300">
