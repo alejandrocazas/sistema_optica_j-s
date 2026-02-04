@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 // Controladores
 use App\Http\Controllers\ProfileController;
@@ -22,6 +23,8 @@ use App\Livewire\PayrollComponent;
 use App\Models\Sale;
 use App\Models\Patient;
 use App\Models\Product;
+use App\Models\PayrollDetail;
+use App\Models\Employee;
 
 // --- RUTA PÚBLICA ---
 Route::get('/', function () {
@@ -127,6 +130,24 @@ Route::get('/dashboard', function () {
         Route::get('/compras', [PurchaseController::class, 'index'])->name('purchases.index');
         Route::get('/compras/crear', [PurchaseController::class, 'create'])->name('purchases.create');
         Route::post('/compras', [PurchaseController::class, 'store'])->name('purchases.store');
+
+        Route::get('/payroll/print', function (Illuminate\Http\Request $request) {
+            $month = $request->month;
+            $year = $request->year;
+            $branch_id = $request->branch_id;
+
+            $payrolls = \App\Models\PayrollDetail::with('employee.branch')
+                ->where('month', $month)
+                ->where('year', $year)
+                ->when($branch_id, function($q) use ($branch_id) {
+                    $q->whereHas('employee', function($q2) use ($branch_id) {
+                        $q2->where('branch_id', $branch_id);
+                    });
+                })
+                ->get();
+
+            return view('reports.payroll', compact('payrolls', 'month', 'year'));
+        })->name('payroll.print');
 
         // Reportes Físicos y Financieros
         Route::get('/inventario/imprimir', [InventoryController::class, 'print'])->name('inventory.print');

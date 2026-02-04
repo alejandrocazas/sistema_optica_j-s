@@ -182,10 +182,12 @@
 
         {{-- BOTÓN GUARDAR --}}
         <div class="mt-8 flex justify-end">
-            <button wire:click="savePayroll" class="btn-gold font-bold py-4 px-10 rounded shadow-lg text-sm uppercase tracking-wider flex items-center gap-3">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-                GUARDAR PLANILLA DE {{ strtoupper(\Carbon\Carbon::create()->month($selectedMonth)->monthName) }}
-            </button>
+            {{-- Busca el botón guardar al final del archivo y reemplaza el texto interno --}}
+<button wire:click="savePayroll" class="btn-gold ...">
+    <svg class="...">...</svg>
+    {{-- CORRECCIÓN APLICADA: (int) para el error y locale('es') para el idioma --}}
+    GUARDAR Y GENERAR PLANILLA DE {{ strtoupper(\Carbon\Carbon::create()->month((int)$selectedMonth)->locale('es')->monthName) }}
+</button>
         </div>
     </div>
 </div>

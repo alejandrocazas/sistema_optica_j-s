@@ -79,17 +79,14 @@ class PayrollComponent extends Component
 
     public function savePayroll()
     {
+        // 1. Guardar todos los datos (El código que ya tenías)
         foreach($this->payrollData as $empId => $data) {
 
-            // 1. Cálculos
-            $dailySalary = $data['base_salary'] / 30; // Sueldo diario
-
-            $discountLates = $data['lates'] * $this->penaltyPerLate; // Multa x Atraso
-            $discountAbsences = $data['absences'] * $dailySalary;    // Descuento x Día no trabajado
-
+            $dailySalary = $data['base_salary'] / 30;
+            $discountLates = $data['lates'] * $this->penaltyPerLate;
+            $discountAbsences = $data['absences'] * $dailySalary;
             $finalPay = $data['base_salary'] - $discountLates - $discountAbsences + $data['bonuses'];
 
-            // 2. Guardar en BD
             PayrollDetail::updateOrCreate(
                 [
                     'employee_id' => $empId,
@@ -103,13 +100,18 @@ class PayrollComponent extends Component
                     'discount_lates' => $discountLates,
                     'discount_absences' => $discountAbsences,
                     'bonuses' => $data['bonuses'],
-                    'final_pay' => max(0, $finalPay), // Evitar negativos
+                    'final_pay' => max(0, $finalPay),
                 ]
             );
         }
 
-        $this->loadEmployees(); // Recargar para mostrar estado "Guardado"
-        $this->dispatch('simple-alert', ['message' => 'Planilla Mensual Guardada Correctamente']);
+        // 2. REDIRECCIONAR AL PDF (Nueva funcionalidad)
+        // En lugar de solo mostrar una alerta, redirigimos a la vista de impresión
+        return redirect()->route('payroll.print', [
+            'month' => $this->selectedMonth,
+            'year' => $this->selectedYear,
+            'branch_id' => $this->branch_id
+        ]);
     }
 
     public function render()
