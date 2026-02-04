@@ -19,7 +19,12 @@
     </style>
     @livewireStyles
 </head>
-<body class="h-full font-sans antialiased text-gray-900 bg-gray-50 dark:bg-neutral-900" x-data="{ darkMode: false }" :class="{ 'dark': darkMode }">
+<body class="h-full font-sans antialiased text-gray-900 bg-gray-50 dark:bg-neutral-900"
+      x-data="{
+          darkMode: localStorage.getItem('darkMode') === 'true'
+      }"
+      x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))"
+      :class="{ 'dark': darkMode }">
 
     <div class="flex h-screen overflow-hidden">
 
@@ -54,13 +59,22 @@
                             </div>
 
                             {{-- CORRECCIÓN: Verificación genérica de foto --}}
-                            @if (!empty(Auth::user()->profile_photo_url))
-                                <img class="h-10 w-10 rounded-full object-cover border-2 border-gray-100 group-hover:border-[#C59D5F] transition" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
-                            @else
-                                <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold border-2 border-gray-100 group-hover:border-[#C59D5F] transition">
-                                    {{ substr(Auth::user()->name, 0, 1) }}
-                                </div>
-                            @endif
+                            @if (Auth::user()->profile_photo_path)
+    {{-- Opción A: Si hay una ruta de foto guardada en la base de datos --}}
+    <img class="h-10 w-10 rounded-full object-cover border-2 border-gray-100 group-hover:border-[#C59D5F] transition"
+         src="{{ asset('storage/' . Auth::user()->profile_photo_path) }}"
+         alt="{{ Auth::user()->name }}" />
+@elseif (Laravel\Jetstream\Jetstream::managesProfilePhotos())
+    {{-- Opción B: Intento con Jetstream (si está activo) --}}
+    <img class="h-10 w-10 rounded-full object-cover border-2 border-gray-100 group-hover:border-[#C59D5F] transition"
+         src="{{ Auth::user()->profile_photo_url }}"
+         alt="{{ Auth::user()->name }}" />
+@else
+    {{-- Opción C: Iniciales (Solo si no hay foto) --}}
+    <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold border-2 border-gray-100 group-hover:border-[#C59D5F] transition">
+        {{ substr(Auth::user()->name, 0, 1) }}
+    </div>
+@endif
 
                             <svg class="w-4 h-4 text-gray-400 group-hover:text-[#C59D5F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
