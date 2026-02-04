@@ -180,14 +180,38 @@
             </div>
         </div>
 
-        {{-- BOTÓN GUARDAR --}}
-        <div class="mt-8 flex justify-end">
-            {{-- Busca el botón guardar al final del archivo y reemplaza el texto interno --}}
-<button wire:click="savePayroll" class="btn-gold ...">
-    <svg class="...">...</svg>
-    {{-- CORRECCIÓN APLICADA: (int) para el error y locale('es') para el idioma --}}
-    GUARDAR Y GENERAR PLANILLA DE {{ strtoupper(\Carbon\Carbon::create()->month((int)$selectedMonth)->locale('es')->monthName) }}
-</button>
+        
+        {{-- BOTÓN GUARDAR Y ACCIONES --}}
+        <div class="mt-8 flex justify-end gap-4">
+
+            {{-- LÓGICA PHP (Faltaba esto en tu código) --}}
+            @php
+                // 1. Verificamos si ya existe planilla guardada para este periodo
+                $existePlanilla = \App\Models\PayrollDetail::where('month', $selectedMonth)
+                                    ->where('year', $selectedYear)
+                                    ->when($branch_id, function($q) {
+                                        $q->whereHas('employee', fn($q2) => $q2->where('branch_id', $this->branch_id));
+                                    })->exists();
+
+                // 2. Calculamos el nombre del mes en español (sin errores de Carbon)
+                $mesNombre = strtoupper(\Carbon\Carbon::create(null, (int)$selectedMonth, 1)->locale('es')->monthName);
+            @endphp
+
+            {{-- BOTÓN GRIS: IMPRIMIR COPIA (Solo aparece si ya existe la planilla) --}}
+            @if($existePlanilla)
+                <a href="{{ route('payroll.print', ['month' => $selectedMonth, 'year' => $selectedYear, 'branch_id' => $branch_id]) }}"
+                   target="_blank"
+                   class="bg-gray-800 text-white font-bold py-4 px-6 rounded shadow-lg text-sm uppercase tracking-wider flex items-center gap-2 hover:bg-gray-700 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    IMPRIMIR COPIA DE {{ $mesNombre }}
+                </a>
+            @endif
+
+            {{-- BOTÓN DORADO: GUARDAR/ACTUALIZAR (Siempre visible) --}}
+            <button wire:click="savePayroll" class="btn-gold font-bold py-4 px-10 rounded shadow-lg text-sm uppercase tracking-wider flex items-center gap-3">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                {{ $existePlanilla ? 'ACTUALIZAR Y REIMPRIMIR' : 'GUARDAR Y GENERAR' }} PLANILLA DE {{ $mesNombre }}
+            </button>
         </div>
     </div>
 </div>

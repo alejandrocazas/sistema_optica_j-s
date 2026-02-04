@@ -30,7 +30,7 @@
 
     <div class="header">
         <h1>PLANILLA DE SUELDOS Y SALARIOS</h1>
-        <p>Periodo: {{ strtoupper(\Carbon\Carbon::create()->month($month)->locale('es')->monthName) }} {{ $year }}</p>
+        <p>Periodo: {{ strtoupper(\Carbon\Carbon::create(null, (int)$month, 1)->locale('es')->monthName) }} {{ $year }}</p>
         <p>Expresado en Bolivianos</p>
     </div>
 
