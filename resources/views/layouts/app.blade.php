@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>{{ config('app.name', 'Sistema Óptico') }}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -24,6 +24,7 @@
     <div class="flex h-screen overflow-hidden">
 
         <aside class="hidden md:flex md:w-72 md:flex-col fixed inset-y-0 z-50 bg-neutral-900 border-r border-gray-800">
+            {{-- Asegúrate de que la ruta a tu componente sidebar sea correcta --}}
             @include('layouts.sidebar')
         </aside>
 
@@ -49,21 +50,24 @@
                         <button @click="open = !open" class="flex items-center gap-3 focus:outline-none group">
                             <div class="text-right hidden sm:block">
                                 <p class="text-sm font-bold text-gray-900 dark:text-white group-hover:text-[#C59D5F] transition">{{ Auth::user()->name }}</p>
-                                <p class="text-[10px] text-gray-500 uppercase tracking-wider">{{ Auth::user()->role ?? 'Admin' }}</p>
+                                <p class="text-[10px] text-gray-500 uppercase tracking-wider">{{ Auth::user()->role ?? 'Usuario' }}</p>
                             </div>
-                            @if (Laravel\Jetstream\Jetstream::managesProfilePhotos() && Auth::user()->profile_photo_url)
+
+                            {{-- CORRECCIÓN: Verificación genérica de foto --}}
+                            @if (!empty(Auth::user()->profile_photo_url))
                                 <img class="h-10 w-10 rounded-full object-cover border-2 border-gray-100 group-hover:border-[#C59D5F] transition" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
                             @else
                                 <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold border-2 border-gray-100 group-hover:border-[#C59D5F] transition">
                                     {{ substr(Auth::user()->name, 0, 1) }}
                                 </div>
                             @endif
+
                             <svg class="w-4 h-4 text-gray-400 group-hover:text-[#C59D5F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
 
                         <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 border border-gray-100 dark:border-gray-700 z-50" style="display: none;">
 
-                            {{-- CORRECCIÓN AQUÍ: Verificamos si la ruta existe antes de poner el link --}}
+                            {{-- Enlace Perfil Seguro --}}
                             <a href="{{ Route::has('profile.show') ? route('profile.show') : '#' }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-[#C59D5F]">
                                 Perfil
                             </a>
