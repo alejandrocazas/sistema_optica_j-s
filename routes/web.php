@@ -121,6 +121,7 @@ Route::get('/dashboard', function () {
         Route::resource('branches', \App\Http\Controllers\BranchController::class);
         Route::get('/personal-y-planillas', PayrollComponent::class)->name('payroll.index');
         Route::get('/employees', App\Livewire\EmployeeComponent::class)->name('employees.index');
+        Route::patch('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle');
 
         // Inventario (Productos y Categorías)
         Route::resource('products', ProductController::class);

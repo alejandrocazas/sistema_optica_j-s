@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Models\User; // <-- Añadimos el modelo User
 
 class LoginRequest extends FormRequest
 {
@@ -41,6 +42,21 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        // --- INICIO DE LA VALIDACIÓN DE USUARIO ACTIVO ---
+        $user = User::where('email', $this->email)->first();
+
+        if ($user && ! $user->is_active) {
+            // Registramos el intento para evitar ataques de fuerza bruta
+            RateLimiter::hit($this->throttleKey());
+
+            // Lanzamos el error específico
+            throw ValidationException::withMessages([
+                'email' => 'Tu cuenta ha sido desactivada. Por favor, comunícate con el administrador.',
+            ]);
+        }
+        // --- FIN DE LA VALIDACIÓN ---
+
+        // Verificación normal de contraseña
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 

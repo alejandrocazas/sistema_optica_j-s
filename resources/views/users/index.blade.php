@@ -101,36 +101,40 @@
                             @endif
                         </td>
 
-                        <td class="px-5 py-4 text-sm text-center">
-                            <div class="flex justify-center items-center gap-2">
+                        {{-- 1. COLUMNA DE ESTADO --}}
+<td class="px-6 py-4 whitespace-nowrap text-center">
+    @if($user->is_active)
+        <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+            Activo
+        </span>
+    @else
+        <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800 border border-red-200">
+            Inactivo
+        </span>
+    @endif
+</td>
 
-                                {{-- Editar --}}
-                                <a href="{{ route('users.edit', $user) }}" class="p-2 text-gray-400 hover:text-[#C59D5F] hover:bg-[#C59D5F]/10 rounded-full transition" title="Editar Usuario">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                    </svg>
-                                </a>
+{{-- 2. COLUMNA DE ACCIONES (Reemplaza tu botón de eliminar por este) --}}
+<td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
 
-                                {{-- Eliminar (Solo si no es uno mismo) --}}
-                                @if(auth()->id() !== $user->id)
-                                    <form id="delete-form-{{ $user->id }}" action="{{ route('users.destroy', $user->id) }}" method="POST" style="display: none;">
-                                        @csrf @method('DELETE')
-                                    </form>
-                                    <button onclick="confirmDelete(event, 'delete-form-{{ $user->id }}')" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition" title="Eliminar Usuario">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                @else
-                                    <span class="p-2 text-gray-300 dark:text-neutral-600 cursor-not-allowed" title="No puedes eliminarte a ti mismo">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    </span>
-                                @endif
+    {{-- Botón Editar (Mantenlo como lo tenías) --}}
+    <a href="{{ route('users.edit', $user) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Editar</a>
 
-                            </div>
-                        </td>
+    {{-- NUEVO BOTÓN: Activar / Desactivar --}}
+    @if(auth()->id() !== $user->id) {{-- Para que no salga el botón en tu propio usuario --}}
+        <form action="{{ route('users.toggle', $user) }}" method="POST" class="inline-block">
+            @csrf
+            @method('PATCH')
+            <button type="submit"
+                    class="{{ $user->is_active ? 'text-red-600 hover:text-red-900' : 'text-emerald-600 hover:text-emerald-900' }} font-bold"
+                    onclick="return confirm('¿Estás seguro de cambiar el estado de este usuario?')">
+                {{ $user->is_active ? 'Desactivar' : 'Activar' }}
+            </button>
+        </form>
+    @endif
+</td>
+
+
                     </tr>
                     @endforeach
                 </tbody>

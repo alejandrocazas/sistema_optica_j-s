@@ -25,7 +25,7 @@ class UserController extends Controller
     {
         // Obtenemos todas las sucursales para el select
         $branches = Branch::all();
-        
+
         return view('users.create', compact('branches'));
     }
 
@@ -97,8 +97,24 @@ class UserController extends Controller
         if ($user->id === auth()->id()) {
             return back()->with('error', 'No puedes eliminar tu propia cuenta.');
         }
-        
+
         $user->delete();
         return redirect()->route('users.index')->with('success', 'Usuario eliminado.');
+    }
+    // NUEVA FUNCIÓN PARA ACTIVAR/DESACTIVAR
+    public function toggleStatus(User $user)
+    {
+        // Evitar que el administrador se desactive a sí mismo
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'No puedes desactivar tu propia cuenta administradora.');
+        }
+
+        // Invertimos el estado (Si era true pasa a false, y viceversa)
+        $user->is_active = !$user->is_active;
+        $user->save();
+
+        $mensaje = $user->is_active ? 'Usuario ACTIVADO correctamente.' : 'Usuario DESACTIVADO correctamente.';
+
+        return back()->with('success', $mensaje);
     }
 }
