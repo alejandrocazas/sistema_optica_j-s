@@ -27,6 +27,7 @@ class PosComponent extends Component
     public $patient_id = null;
     public $selectedPatientName = null;
     public $withConsultation = false; // Check de Consulta
+    public $isImmediateDelivery = false; // NUEVO: Check de Entrega Inmediata
 
     // Pago
     public $paymentMethod = 'Efectivo';
@@ -114,7 +115,7 @@ class PosComponent extends Component
         $this->searchPatient = '';
     }
 
-    // --- GUARDAR VENTA (AQUÍ ESTÁ LA CORRECCIÓN) ---
+    // --- GUARDAR VENTA ---
     public function saveSale()
     {
         if(empty($this->cart)) return;
@@ -136,6 +137,11 @@ class PosComponent extends Component
             // Total Final = Total Carrito - Descuento
             $totalConDescuento = max(0, $this->total - $montoDescuento);
 
+            // --- NUEVA LÓGICA: ENTREGA INMEDIATA ---
+            $estadoFinal = $this->isImmediateDelivery ? 'entregado' : 'laboratorio';
+            $fechaEntrega = $this->isImmediateDelivery ? now() : ($this->delivery_date ?: null);
+            // ---------------------------------------
+
             // 2. Crear Venta
             $sale = Sale::create([
                 'receipt_number' => 'V-'.time(),
@@ -143,23 +149,16 @@ class PosComponent extends Component
                 'branch_id' => $branchId,
                 'patient_id' => $this->patient_id,
 
-                // GUARDAMOS EL TOTAL YA CON EL DESCUENTO APLICADO
                 'total' => $totalConDescuento,
-
-                // GUARDAMOS EL DESCUENTO (IMPORTANTE PARA EL RECIBO)
                 'discount' => $montoDescuento,
-
-                // GUARDAMOS EL CHECK DE CONSULTA
                 'has_consultation' => $this->withConsultation,
-
                 'paid_amount' => $montoPagado,
-
-                // EL SALDO SE CALCULA SOBRE EL TOTAL CON DESCUENTO
                 'balance' => max(0, $totalConDescuento - $montoPagado),
 
-                'status' => 'laboratorio',
+                // Aplicamos las nuevas variables de estado y fecha
+                'status' => $estadoFinal,
                 'payment_status' => ($montoPagado >= $totalConDescuento) ? 'pagado' : 'parcial',
-                'delivery_date' => $this->delivery_date ?: null,
+                'delivery_date' => $fechaEntrega,
                 'observations' => $this->observations,
             ]);
 
@@ -193,8 +192,8 @@ class PosComponent extends Component
                 ]);
             }
 
-            // 5. Limpiar
-            $this->reset(['cart', 'total', 'discount', 'patient_id', 'amountPaid', 'delivery_date', 'observations', 'selectedPatientName', 'paymentReference', 'withConsultation']);
+            // 5. Limpiar (Añadimos isImmediateDelivery para que se reinicie)
+            $this->reset(['cart', 'total', 'discount', 'patient_id', 'amountPaid', 'delivery_date', 'observations', 'selectedPatientName', 'paymentReference', 'withConsultation', 'isImmediateDelivery']);
 
             // 6. Emitir evento
             $this->dispatch('sale-success', ['saleId' => $sale->id]);

@@ -61,7 +61,7 @@
                                     <img src="{{ Storage::url($product->image_path) }}" class="w-10 h-10 object-cover rounded border border-gray-200 dark:border-neutral-600">
                                 @else
                                     <div class="w-10 h-10 bg-gray-100 dark:bg-neutral-700 rounded flex items-center justify-center text-gray-400">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2v12a2 2 0 002 2z"></path></svg>
                                     </div>
                                 @endif
                             </td>
@@ -197,10 +197,26 @@
             {{-- PIE DE PÁGINA: TOTALES Y PAGO --}}
             <div class="bg-neutral-800 p-4 border-t border-[#C59D5F] shadow-[0_-4px_10px_rgba(0,0,0,0.5)] z-30">
 
-                {{-- FECHA Y OBSERVACIÓN --}}
-                <div class="flex gap-2 mb-3">
-                    <input wire:model="delivery_date" type="datetime-local" class="w-1/2 p-1.5 text-xs border border-gray-600 rounded bg-neutral-700 text-white focus:border-[#C59D5F] outline-none">
-                    <textarea wire:model="observations" rows="1" class="w-1/2 p-1.5 text-xs border border-gray-600 rounded bg-neutral-700 text-white focus:border-[#C59D5F] outline-none" placeholder="Observaciones..."></textarea>
+                {{-- NUEVO: CHECKBOX DE ENTREGA INMEDIATA --}}
+                <div class="mb-2 p-2 bg-[#C59D5F]/10 border border-[#C59D5F]/30 rounded">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" wire:model.live="isImmediateDelivery" class="w-4 h-4 text-[#C59D5F] border-gray-600 rounded bg-neutral-700 focus:ring-[#C59D5F] focus:ring-offset-neutral-800">
+                        <span class="ml-2 text-[11px] font-bold text-[#C59D5F] uppercase tracking-wide">
+                            Entrega Inmediata (Stock Directo)
+                        </span>
+                    </label>
+                </div>
+
+                {{-- FECHA Y OBSERVACIÓN (Con Alpine.js para animaciones) --}}
+                <div class="flex gap-2 mb-3" x-data="{ immediate: @entangle('isImmediateDelivery') }">
+                    {{-- La fecha se oculta si es entrega inmediata --}}
+                    <div class="transition-all duration-300" x-show="!immediate" :class="!immediate ? 'w-1/2' : 'w-0 overflow-hidden'">
+                        <input wire:model="delivery_date" type="datetime-local" title="Fecha de Entrega" class="w-full p-1.5 text-xs border border-gray-600 rounded bg-neutral-700 text-white focus:border-[#C59D5F] outline-none">
+                    </div>
+                    {{-- Las observaciones ocupan todo el ancho si la fecha se oculta --}}
+                    <div class="transition-all duration-300" :class="immediate ? 'w-full' : 'w-1/2'">
+                        <textarea wire:model="observations" rows="1" class="w-full p-1.5 text-xs border border-gray-600 rounded bg-neutral-700 text-white focus:border-[#C59D5F] outline-none" placeholder="Observaciones..."></textarea>
+                    </div>
                 </div>
 
                 {{-- CÁLCULOS: SUBTOTAL, DESCUENTO, TOTAL --}}

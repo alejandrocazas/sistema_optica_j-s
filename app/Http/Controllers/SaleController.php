@@ -83,17 +83,23 @@ class SaleController extends Controller
             $totalNeto = max(0, $totalBruto - $discount);
             $paidAmount = $request->input('payment_amount', 0);
 
+            // --- NUEVA LÓGICA: MÉTODO 2 (Entrega Inmediata) ---
+            $esEntregaInmediata = $request->boolean('entrega_inmediata');
+            $estadoFinal = $esEntregaInmediata ? 'entregado' : 'laboratorio';
+            $fechaEntrega = $esEntregaInmediata ? now() : $request->input('delivery_date');
+            // --------------------------------------------------
+
             // A. Crear la Venta
             $sale = Sale::create([
                 'user_id' => auth()->id(),
                 'patient_id' => $request->patient_id,
                 'branch_id' => $branchId,
                 'receipt_number' => 'REC-' . time(),
-                'status' => 'laboratorio',
+                'status' => $estadoFinal, // Usamos la variable dinámica
 
                 // Nuevos campos
                 'has_consultation' => $request->boolean('has_consultation'),
-                'delivery_date' => $request->input('delivery_date'),
+                'delivery_date' => $fechaEntrega, // Usamos la variable dinámica
                 'observations' => $request->input('observations'),
 
                 // Totales
