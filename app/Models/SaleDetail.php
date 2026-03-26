@@ -11,6 +11,7 @@ class SaleDetail extends Model
     // Relación con el producto (Para saber el nombre y precio)
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        // AQUÍ ESTÁ LA MAGIA: Le decimos que traiga el producto INCLUSO si está "eliminado" (Soft Delete)
+        return $this->belongsTo(Product::class)->withTrashed();
     }
 }
