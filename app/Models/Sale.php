@@ -24,12 +24,12 @@ class Sale extends Model
 
     public function patient()
     {
-        return $this->belongsTo(Patient::class)->withTrashed();
+        return $this->belongsTo(Patient::class);
     }
 
     public function user()
     {
-        return $this->belongsTo(User::class)->withTrashed();
+        return $this->belongsTo(User::class);
     }
 
     public function payments()
