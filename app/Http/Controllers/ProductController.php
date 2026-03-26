@@ -43,11 +43,14 @@ class ProductController extends Controller
     {
         $request->validate([
             'category_id' => 'required',
-            'code' => 'required|unique:products',
+            'code' => 'required|string|max:255|unique:products,code',
             'name' => 'required',
             'stock' => 'required|numeric',
             'price_sell' => 'required|numeric',
-            'image' => 'nullable|image|max:2048' // Máximo 2MB
+            'image' => 'nullable|image|max:2048'
+            ], [
+            // Mensaje personalizado para el código
+            'code.unique' => 'Este código ya está en uso por otro producto. Ingresa uno diferente.', // Máximo 2MB
         ]);
 
         $data = $request->all();
@@ -55,7 +58,7 @@ class ProductController extends Controller
         // Subir Imagen
         if ($request->hasFile('image')) {
             // Se guarda en storage/app/public/products
-            $path = $request->file('image')->store('products', 'public'); 
+            $path = $request->file('image')->store('products', 'public');
             $data['image_path'] = $path;
         }
 
@@ -67,11 +70,26 @@ class ProductController extends Controller
     // Borrar producto e imagen
     public function destroy(Product $product)
     {
-        if ($product->image_path) {
-            Storage::disk('public')->delete($product->image_path);
+        try {
+            // Intentamos eliminar la imagen si existe
+            if ($product->image_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->image_path);
+            }
+
+            // Intentamos eliminar el producto
+            $product->delete();
+
+            return redirect()->route('products.index')->with('success', 'Producto eliminado correctamente.');
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Si el error es 1451 (Llave foránea / Historial existente)
+            if ($e->errorInfo[1] == 1451) {
+                return redirect()->route('products.index')->with('error', 'No puedes eliminar este producto porque ya tiene un historial de compras o ventas asociado. Si ya no lo vendes, te recomendamos editar su nombre agregando "(INACTIVO)".');
+            }
+
+            // Para cualquier otro error de BD
+            return redirect()->route('products.index')->with('error', 'Ocurrió un error al intentar eliminar el producto.');
         }
-        $product->delete();
-        return redirect()->route('products.index');
     }
     // Muestra el formulario de edición
     public function edit(Product $product)
@@ -109,8 +127,8 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Producto actualizado correctamente.');
     }
     // Muestra el formulario de edición
-    
+
     // Método rápido para guardar categoría desde el mismo formulario (AJAX o simple)
-    // Por ahora lo haremos simple, usaremos un controlador aparte para categorias si deseas, 
+    // Por ahora lo haremos simple, usaremos un controlador aparte para categorias si deseas,
     // o un método storeCategory aquí mismo si queremos simplificar.
 }
