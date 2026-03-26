@@ -46,11 +46,12 @@ class ProductController extends Controller
             'code' => 'required|string|max:255|unique:products,code',
             'name' => 'required',
             'stock' => 'required|numeric',
+            'price_buy' => 'required|numeric', // <-- Te faltaba este
             'price_sell' => 'required|numeric',
-            'image' => 'nullable|image|max:2048'
-            ], [
+            'image' => 'nullable|image|max:2048' // Máximo 2MB
+        ], [
             // Mensaje personalizado para el código
-            'code.unique' => 'Este código ya está en uso por otro producto. Ingresa uno diferente.', // Máximo 2MB
+            'code.unique' => 'Este código ya está en uso por otro producto. Ingresa uno diferente.',
         ]);
 
         $data = $request->all();
