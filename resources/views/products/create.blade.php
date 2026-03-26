@@ -60,9 +60,12 @@
                                 <div class="relative w-full">
                                     <select name="category_id" required
                                         class="w-full p-3 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-gold outline-none appearance-none transition font-medium cursor-pointer">
-                                        <option value="" disabled selected>Seleccione...</option>
+                                        <option value="" disabled {{ old('category_id') ? '' : 'selected' }}>Seleccione...</option>
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                            {{-- Se agregó la validación old() para recordar la categoría seleccionada --}}
+                                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                                {{ $category->name }}
+                                            </option>
                                         @endforeach
                                     </select>
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
@@ -75,20 +78,30 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Código de Barras / Manual</label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
-                                </span>
-                                <input type="text" name="code" required placeholder="Ej: LEN-001"
-                                    class="w-full pl-10 p-3 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-gold outline-none transition font-mono text-sm">
-                            </div>
+                        <div class="mb-4">
+                            <label for="code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Código del Producto
+                            </label>
+
+                            <input type="text"
+                                   name="code"
+                                   id="code"
+                                   value="{{ old('code') }}"
+                                   class="mt-1 block w-full rounded-md shadow-sm
+                                          @error('code') border-red-500 @else border-gray-300 dark:border-gray-600 @enderror
+                                          focus:border-[#C59D5F] focus:ring-[#C59D5F]
+                                          bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
+                                   placeholder="Ingresa el código...">
+
+                            @error('code')
+                                <span class="text-sm text-red-500 mt-1 font-bold">{{ $message }}</span>
+                            @enderror
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Lote (Opcional)</label>
-                            <input type="text" name="batch" placeholder="Lote de fabricación"
+                            {{-- Se agregó value="{{ old('batch') }}" --}}
+                            <input type="text" name="batch" value="{{ old('batch') }}" placeholder="Lote de fabricación"
                                 class="w-full p-3 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-gold outline-none transition text-sm">
                         </div>
 
@@ -102,7 +115,8 @@
                     <div class="space-y-6">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nombre del Producto</label>
-                            <input type="text" name="name" required placeholder="Ej: Lente Blue Cut..."
+                            {{-- Se agregó value="{{ old('name') }}" --}}
+                            <input type="text" name="name" value="{{ old('name') }}" required placeholder="Ej: Lente Blue Cut..."
                                 class="w-full p-3 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-gold outline-none transition font-medium text-lg">
                         </div>
 
@@ -111,7 +125,8 @@
                                 <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Precio Compra</label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-3 text-gray-400 text-xs">Bs</span>
-                                    <input type="number" step="0.01" name="price_buy" placeholder="0.00"
+                                    {{-- Se agregó value="{{ old('price_buy') }}" --}}
+                                    <input type="number" step="0.01" name="price_buy" value="{{ old('price_buy') }}" placeholder="0.00"
                                         class="w-full pl-8 p-3 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-gold outline-none transition font-mono text-sm">
                                 </div>
                             </div>
@@ -119,7 +134,8 @@
                                 <label class="block text-xs font-bold text-[#C59D5F] uppercase tracking-wider mb-2">Precio Venta</label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-3 text-[#C59D5F] text-xs">Bs</span>
-                                    <input type="number" step="0.01" name="price_sell" required placeholder="0.00"
+                                    {{-- Se agregó value="{{ old('price_sell') }}" --}}
+                                    <input type="number" step="0.01" name="price_sell" value="{{ old('price_sell') }}" required placeholder="0.00"
                                         class="w-full pl-8 p-3 border border-[#C59D5F]/30 rounded-sm bg-white dark:bg-neutral-800 dark:border-neutral-600 text-gray-900 dark:text-white focus:ring-1 focus-gold outline-none transition font-bold text-lg font-serif-display">
                                 </div>
                             </div>
