@@ -43,8 +43,40 @@ class BranchController extends Controller
         if ($branch->id == 1) {
             return redirect()->back()->with('error', 'No puedes eliminar la Casa Matriz.');
         }
-        
+
         $branch->delete();
         return redirect()->back()->with('success', 'Sucursal eliminada.');
+    }
+
+    // ==========================================
+    // MÓDULO DE FACTURACIÓN SAAS (SUPER ADMIN)
+    // ==========================================
+
+    public function billing()
+    {
+        // Traemos todas las sucursales para ver su estado
+        $branches = \App\Models\Branch::all();
+        return view('branches.billing', compact('branches'));
+    }
+
+    public function payInstallation(\App\Models\Branch $branch)
+    {
+        $branch->update([
+            'installation_paid' => true,
+            // Al pagar la instalación, arranca su primer mes de servicio desde hoy
+            'next_payment_date' => $branch->next_payment_date ?? now()->addMonth()
+        ]);
+
+        return back()->with('success', 'Instalación marcada como pagada. El primer mes de servicio ha iniciado para ' . $branch->name);
+    }
+
+    public function renewSubscription(\App\Models\Branch $branch)
+    {
+        // Le sumamos 1 mes exactamente desde el día en que te pagan
+        $branch->update([
+            'next_payment_date' => now()->addMonth()
+        ]);
+
+        return back()->with('success', 'Suscripción renovada por 1 mes exitosamente para ' . $branch->name);
     }
 }

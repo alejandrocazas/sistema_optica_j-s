@@ -96,6 +96,43 @@
                 </div>
             </header>
 
+            @if(auth()->check() && auth()->user()->role === 'admin' && auth()->user()->branch)
+    @php
+        $branch = auth()->user()->branch;
+        // Calculamos los días faltantes (positivo = faltan días, negativo = días de atraso)
+        $diasRestantes = $branch->next_payment_date ? now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($branch->next_payment_date)->startOfDay(), false) : null;
+    @endphp
+
+    {{-- CASO 1: Debe la instalación inicial --}}
+    @if(!$branch->installation_paid)
+        <div class="bg-red-900/90 backdrop-blur-sm border-b border-red-700 text-white px-6 py-2.5 flex items-center justify-center gap-3 shadow-md z-40 relative">
+            <svg class="w-5 h-5 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <p class="text-sm font-medium tracking-wide">
+                <strong>Aviso del Sistema:</strong> Está pendiente el pago de <span class="font-bold text-red-200">Bs 800</span> por concepto de instalación e implementación.
+            </p>
+        </div>
+
+    {{-- CASO 2: Faltan 5 días o menos para la mensualidad --}}
+    @elseif($diasRestantes !== null && $diasRestantes <= 5 && $diasRestantes >= 0)
+        <div class="bg-yellow-600/90 backdrop-blur-sm border-b border-yellow-500 text-white px-6 py-2.5 flex items-center justify-center gap-3 shadow-md z-40 relative">
+            <svg class="w-5 h-5 text-yellow-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <p class="text-sm font-medium tracking-wide">
+                <strong>Recordatorio:</strong> Tu suscripción mensual vence en <span class="font-bold text-yellow-100">{{ $diasRestantes }} días</span> ({{ \Carbon\Carbon::parse($branch->next_payment_date)->format('d/m/Y') }}).
+            </p>
+        </div>
+
+    {{-- CASO 3: Mensualidad Vencida --}}
+    @elseif($diasRestantes !== null && $diasRestantes < 0)
+        <div class="bg-red-600/90 backdrop-blur-sm border-b border-red-700 text-white px-6 py-2.5 flex items-center justify-center gap-3 shadow-md z-40 relative">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <p class="text-sm font-medium tracking-wide">
+                <strong>Servicio Vencido:</strong> Tu suscripción mensual se encuentra vencida. Por favor, regulariza el pago para evitar cortes en el servicio.
+            </p>
+        </div>
+    @endif
+@endif
+
+
             <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-neutral-900 p-6">
                 {{ $slot }}
             </main>

@@ -154,6 +154,10 @@ Route::get('/dashboard', function () {
         Route::get('/inventario/imprimir', [InventoryController::class, 'print'])->name('inventory.print');
         Route::get('/reportes', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reportes/pdf', [ReportController::class, 'pdf'])->name('reports.pdf');
+
+        Route::get('/facturacion', [App\Http\Controllers\BranchController::class, 'billing'])->name('billing.index');
+        Route::patch('/facturacion/{branch}/instalacion', [App\Http\Controllers\BranchController::class, 'payInstallation'])->name('billing.pay_installation');
+        Route::patch('/facturacion/{branch}/mensualidad', [App\Http\Controllers\BranchController::class, 'renewSubscription'])->name('billing.renew_subscription');
     });
 });
 
