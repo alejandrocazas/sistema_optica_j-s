@@ -115,25 +115,28 @@
 </td>
 
 {{-- 2. COLUMNA DE ACCIONES (Reemplaza tu botón de eliminar por este) --}}
-<td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
 
-    {{-- Botón Editar (Mantenlo como lo tenías) --}}
-    <a href="{{ route('users.edit', $user) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Editar</a>
+{{-- Dentro de tu tabla de usuarios, en la columna de acciones --}}
+<td class="px-6 py-4 text-sm font-medium flex gap-2">
+    {{-- Condición de Blindaje: No mostrar acciones si el usuario es superadmin --}}
+    @if($user->role !== 'superadmin')
+        {{-- Botón Editar --}}
+        <a href="{{ route('users.edit', $user->id) }}" class="text-blue-600 hover:text-blue-900">
+            Editar
+        </a>
 
-    {{-- NUEVO BOTÓN: Activar / Desactivar --}}
-    @if(auth()->id() !== $user->id) {{-- Para que no salga el botón en tu propio usuario --}}
-        <form action="{{ route('users.toggle', $user) }}" method="POST" class="inline-block">
-            @csrf
-            @method('PATCH')
-            <button type="submit"
-                    class="{{ $user->is_active ? 'text-red-600 hover:text-red-900' : 'text-emerald-600 hover:text-emerald-900' }} font-bold"
-                    onclick="return confirm('¿Estás seguro de cambiar el estado de este usuario?')">
-                {{ $user->is_active ? 'Desactivar' : 'Activar' }}
+        {{-- Botón Desactivar (Asumiendo que usas un formulario para toggleStatus) --}}
+        <form action="{{ route('users.toggle', $user->id) }}" method="POST">
+            @csrf @method('PATCH')
+            <button type="submit" class="text-red-600 hover:text-red-900">
+                {{ $user->active ? 'Desactivar' : 'Activar' }}
             </button>
         </form>
+    @else
+        {{-- Texto opcional para indicar que está blindado --}}
+        <span class="text-gray-500 italic">Protegido</span>
     @endif
 </td>
-
 
                     </tr>
                     @endforeach

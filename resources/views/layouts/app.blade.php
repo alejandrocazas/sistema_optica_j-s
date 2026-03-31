@@ -29,7 +29,6 @@
     <div class="flex h-screen overflow-hidden">
 
         <aside class="hidden md:flex md:w-72 md:flex-col fixed inset-y-0 z-50 bg-neutral-900 border-r border-gray-800">
-            {{-- Asegúrate de que la ruta a tu componente sidebar sea correcta --}}
             @include('layouts.sidebar')
         </aside>
 
@@ -58,30 +57,24 @@
                                 <p class="text-[10px] text-gray-500 uppercase tracking-wider">{{ Auth::user()->role ?? 'Usuario' }}</p>
                             </div>
 
-                            {{-- CORRECCIÓN: Verificación genérica de foto --}}
                             @if (Auth::user()->profile_photo_path)
-    {{-- Opción A: Si hay una ruta de foto guardada en la base de datos --}}
-    <img class="h-10 w-10 rounded-full object-cover border-2 border-gray-100 group-hover:border-[#C59D5F] transition"
-         src="{{ asset('storage/' . Auth::user()->profile_photo_path) }}"
-         alt="{{ Auth::user()->name }}" />
-@elseif (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-    {{-- Opción B: Intento con Jetstream (si está activo) --}}
-    <img class="h-10 w-10 rounded-full object-cover border-2 border-gray-100 group-hover:border-[#C59D5F] transition"
-         src="{{ Auth::user()->profile_photo_url }}"
-         alt="{{ Auth::user()->name }}" />
-@else
-    {{-- Opción C: Iniciales (Solo si no hay foto) --}}
-    <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold border-2 border-gray-100 group-hover:border-[#C59D5F] transition">
-        {{ substr(Auth::user()->name, 0, 1) }}
-    </div>
-@endif
+                                <img class="h-10 w-10 rounded-full object-cover border-2 border-gray-100 group-hover:border-[#C59D5F] transition"
+                                     src="{{ asset('storage/' . Auth::user()->profile_photo_path) }}"
+                                     alt="{{ Auth::user()->name }}" />
+                            @elseif (Laravel\Jetstream\Jetstream::managesProfilePhotos())
+                                <img class="h-10 w-10 rounded-full object-cover border-2 border-gray-100 group-hover:border-[#C59D5F] transition"
+                                     src="{{ Auth::user()->profile_photo_url }}"
+                                     alt="{{ Auth::user()->name }}" />
+                            @else
+                                <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold border-2 border-gray-100 group-hover:border-[#C59D5F] transition">
+                                    {{ substr(Auth::user()->name, 0, 1) }}
+                                </div>
+                            @endif
 
                             <svg class="w-4 h-4 text-gray-400 group-hover:text-[#C59D5F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
 
                         <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 border border-gray-100 dark:border-gray-700 z-50" style="display: none;">
-
-                            {{-- Enlace Perfil Seguro --}}
                             <a href="{{ Route::has('profile.show') ? route('profile.show') : '#' }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-[#C59D5F]">
                                 Perfil
                             </a>
@@ -92,46 +85,51 @@
                             </form>
                         </div>
                     </div>
-
                 </div>
             </header>
 
-            @if(auth()->check() && auth()->user()->role === 'admin' && auth()->user()->branch)
-    @php
-        $branch = auth()->user()->branch;
-        // Calculamos los días faltantes (positivo = faltan días, negativo = días de atraso)
-        $diasRestantes = $branch->next_payment_date ? now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($branch->next_payment_date)->startOfDay(), false) : null;
-    @endphp
+            {{-- --- CINTILLO DE FACTURACIÓN (SAAS) --- --}}
+            {{-- Se muestra a cualquier usuario que NO sea superadmin pero que SÍ tenga una sucursal asignada --}}
+            @if(auth()->check() && auth()->user()->role !== 'superadmin' && auth()->user()->branch_id)
+                @php
+                    $branch = \App\Models\Branch::find(auth()->user()->branch_id);
 
-    {{-- CASO 1: Debe la instalación inicial --}}
-    @if(!$branch->installation_paid)
-        <div class="bg-red-900/90 backdrop-blur-sm border-b border-red-700 text-white px-6 py-2.5 flex items-center justify-center gap-3 shadow-md z-40 relative">
-            <svg class="w-5 h-5 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-            <p class="text-sm font-medium tracking-wide">
-                <strong>Aviso del Sistema:</strong> Está pendiente el pago de <span class="font-bold text-red-200">Bs 800</span> por concepto de instalación e implementación.
-            </p>
-        </div>
+                    if($branch) {
+                        $diasRestantes = $branch->next_payment_date ? now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($branch->next_payment_date)->startOfDay(), false) : null;
+                    }
+                @endphp
 
-    {{-- CASO 2: Faltan 5 días o menos para la mensualidad --}}
-    @elseif($diasRestantes !== null && $diasRestantes <= 5 && $diasRestantes >= 0)
-        <div class="bg-yellow-600/90 backdrop-blur-sm border-b border-yellow-500 text-white px-6 py-2.5 flex items-center justify-center gap-3 shadow-md z-40 relative">
-            <svg class="w-5 h-5 text-yellow-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <p class="text-sm font-medium tracking-wide">
-                <strong>Recordatorio:</strong> Tu suscripción mensual vence en <span class="font-bold text-yellow-100">{{ $diasRestantes }} días</span> ({{ \Carbon\Carbon::parse($branch->next_payment_date)->format('d/m/Y') }}).
-            </p>
-        </div>
+                @if($branch)
+                    {{-- CASO 1: Debe la instalación inicial --}}
+                    @if(!$branch->installation_paid)
+                        <div class="bg-red-900/90 backdrop-blur-sm border-b border-red-700 text-white px-6 py-2.5 flex items-center justify-center gap-3 shadow-md z-40 relative">
+                            <svg class="w-5 h-5 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            <p class="text-sm font-medium tracking-wide">
+                                <strong>Aviso del Sistema:</strong> Está pendiente el pago de <span class="font-bold text-red-200">Bs 800</span> por concepto de instalación e implementación.
+                            </p>
+                        </div>
 
-    {{-- CASO 3: Mensualidad Vencida --}}
-    @elseif($diasRestantes !== null && $diasRestantes < 0)
-        <div class="bg-red-600/90 backdrop-blur-sm border-b border-red-700 text-white px-6 py-2.5 flex items-center justify-center gap-3 shadow-md z-40 relative">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-            <p class="text-sm font-medium tracking-wide">
-                <strong>Servicio Vencido:</strong> Tu suscripción mensual se encuentra vencida. Por favor, regulariza el pago para evitar cortes en el servicio.
-            </p>
-        </div>
-    @endif
-@endif
+                    {{-- CASO 2: Faltan 5 días o menos para la mensualidad --}}
+                    @elseif($diasRestantes !== null && $diasRestantes <= 5 && $diasRestantes >= 0)
+                        <div class="bg-yellow-600/90 backdrop-blur-sm border-b border-yellow-500 text-white px-6 py-2.5 flex items-center justify-center gap-3 shadow-md z-40 relative">
+                            <svg class="w-5 h-5 text-yellow-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <p class="text-sm font-medium tracking-wide">
+                                <strong>Recordatorio:</strong> Tu suscripción mensual vence en <span class="font-bold text-yellow-100">{{ $diasRestantes }} días</span> ({{ \Carbon\Carbon::parse($branch->next_payment_date)->format('d/m/Y') }}).
+                            </p>
+                        </div>
 
+                    {{-- CASO 3: Mensualidad Vencida --}}
+                    @elseif($diasRestantes !== null && $diasRestantes < 0)
+                        <div class="bg-red-600/90 backdrop-blur-sm border-b border-red-700 text-white px-6 py-2.5 flex items-center justify-center gap-3 shadow-md z-40 relative">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            <p class="text-sm font-medium tracking-wide">
+                                <strong>Servicio Vencido:</strong> Tu suscripción mensual se encuentra vencida. Por favor, regulariza el pago para evitar cortes en el servicio.
+                            </p>
+                        </div>
+                    @endif
+                @endif
+            @endif
+            {{-- --- FIN CINTILLO --- --}}
 
             <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-neutral-900 p-6">
                 {{ $slot }}

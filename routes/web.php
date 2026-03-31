@@ -67,13 +67,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // 3. GESTIÓN DE PACIENTES (Acceso: Vendedor y Optometrista)
-    Route::middleware(['role:vendedor,optometrista'])->group(function () {
+    Route::middleware(['role:vendedor,optometrista,superadmin'])->group(function () {
         Route::resource('patients', PatientController::class);
         Route::get('patients/{patient}/historial', [PrescriptionController::class, 'byPatient'])->name('prescriptions.history');
     });
 
     // 4. MÓDULO DE VENTAS Y CAJA (Acceso: Solo Vendedor)
-    Route::middleware(['role:vendedor'])->group(function () {
+    Route::middleware(['role:vendedor,superadmin'])->group(function () {
         // Ventas
         Route::get('/ventas', [SaleController::class, 'index'])->name('sales.index');
         Route::get('ventas/nueva', [SaleController::class, 'create'])->name('sales.create');
@@ -95,7 +95,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // 5. MÓDULO CLÍNICO / RECETAS (Acceso: Solo Optometrista)
-    Route::middleware(['role:optometrista'])->group(function () {
+    Route::middleware(['role:optometrista,superadmin'])->group(function () {
         Route::get('atenciones', [PrescriptionController::class, 'index'])->name('prescriptions.index');
         Route::get('atenciones/nueva', [PrescriptionController::class, 'selectPatient'])->name('prescriptions.selectPatient');
         Route::post('/diagnostics', [App\Http\Controllers\DiagnosticController::class, 'store'])->name('diagnostics.store');
@@ -110,7 +110,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // 6. ADMINISTRACIÓN DE ÓPTICA (Acceso: Solo Admin - La Dueña)
-    Route::middleware(['role:admin'])->group(function () {
+    Route::middleware(['role:admin,superadmin'])->group(function () {
         // Usuarios y Empleados
         Route::resource('users', UserController::class);
         Route::resource('branches', \App\Http\Controllers\BranchController::class);
