@@ -89,19 +89,26 @@
             </header>
 
             {{-- --- CINTILLO DE FACTURACIÓN (SAAS) --- --}}
-            {{-- Se muestra a cualquier usuario que NO sea superadmin pero que SÍ tenga una sucursal asignada --}}
-            @if(auth()->check() && auth()->user()->role !== 'superadmin' && auth()->user()->branch_id)
+            @if(auth()->check() && auth()->user()->role !== 'superadmin')
                 @php
-                    $branch = \App\Models\Branch::find(auth()->user()->branch_id);
-
-                    if($branch) {
-                        $diasRestantes = $branch->next_payment_date ? now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($branch->next_payment_date)->startOfDay(), false) : null;
-                    }
+                    // 1. Obtener la sucursal de manera directa y segura
+                    $branch = auth()->user()->branch ?? \App\Models\Branch::find(auth()->user()->branch_id);
                 @endphp
 
                 @if($branch)
+                    @php
+                        // 2. FORZAR la lectura del estado de pago (evita errores con 0 o nulos)
+                        $isPaid = $branch->installation_paid == 1 || $branch->installation_paid === true;
+
+                        // 3. Evaluar días restantes
+                        $diasRestantes = null;
+                        if($branch->next_payment_date) {
+                            $diasRestantes = now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($branch->next_payment_date)->startOfDay(), false);
+                        }
+                    @endphp
+
                     {{-- CASO 1: Debe la instalación inicial --}}
-                    @if(!$branch->installation_paid)
+                    @if(!$isPaid)
                         <div class="bg-red-900/90 backdrop-blur-sm border-b border-red-700 text-white px-6 py-2.5 flex items-center justify-center gap-3 shadow-md z-40 relative">
                             <svg class="w-5 h-5 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                             <p class="text-sm font-medium tracking-wide">
@@ -130,7 +137,6 @@
                 @endif
             @endif
             {{-- --- FIN CINTILLO --- --}}
-
             <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-neutral-900 p-6">
                 {{ $slot }}
             </main>
