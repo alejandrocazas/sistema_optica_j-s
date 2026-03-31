@@ -152,12 +152,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // 7. ADMINISTRACIÓN SAAS (Acceso: EXCLUSIVO Super Admin / Desarrollador)
-    Route::middleware(function ($request, $next) {
-        if (auth()->user()->role !== 'superadmin') {
-            abort(403, 'ACCESO DENEGADO. Área exclusiva de desarrollo y facturación SaaS.');
-        }
-        return $next($request);
-    })->group(function () {
+    Route::middleware(['role:superadmin'])->group(function () {
         Route::get('/facturacion', [App\Http\Controllers\BranchController::class, 'billing'])->name('billing.index');
         Route::post('/facturacion/{branch}/instalacion', [App\Http\Controllers\BranchController::class, 'payInstallation'])->name('billing.pay_installation');
         Route::post('/facturacion/{branch}/mensualidad', [App\Http\Controllers\BranchController::class, 'renewSubscription'])->name('billing.renew_subscription');
