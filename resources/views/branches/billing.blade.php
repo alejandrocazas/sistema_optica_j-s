@@ -39,7 +39,7 @@
                         @endphp
                         <tr class="hover:bg-neutral-700/30 transition">
                             {{-- NOMBRE --}}
-                            <td class="p-4 font-bold text-white text-base">
+                            <td class="p-4 font-bold text-gray-900 dark:text-white text-base">
                                 {{ $branch->name }}
                             </td>
 

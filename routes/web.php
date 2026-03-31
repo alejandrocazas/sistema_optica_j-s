@@ -156,9 +156,24 @@ Route::get('/dashboard', function () {
         Route::get('/reportes/pdf', [ReportController::class, 'pdf'])->name('reports.pdf');
 
         Route::get('/facturacion', [App\Http\Controllers\BranchController::class, 'billing'])->name('billing.index');
-        Route::patch('/facturacion/{branch}/instalacion', [App\Http\Controllers\BranchController::class, 'payInstallation'])->name('billing.pay_installation');
-        Route::patch('/facturacion/{branch}/mensualidad', [App\Http\Controllers\BranchController::class, 'renewSubscription'])->name('billing.renew_subscription');
+        Route::post('/facturacion/{branch}/instalacion', [App\Http\Controllers\BranchController::class, 'payInstallation'])->name('billing.pay_installation');
+        Route::post('/facturacion/{branch}/mensualidad', [App\Http\Controllers\BranchController::class, 'renewSubscription'])->name('billing.renew_subscription');
+
     });
+});
+use App\Models\User;
+
+// RUTA TEMPORAL PARA ASCENDERTE
+Route::get('/hacerme-superadmin', function () {
+    // Cambia 'tu_correo@gmail.com' por el correo con el que inicias sesión en el sistema
+    $user = User::where('email', 'admin@grupojs.com')->first();
+
+    if($user) {
+        $user->update(['role' => 'superadmin']);
+        return "¡Felicidades! Ahora eres el Súper Administrador del sistema.";
+    }
+
+    return "Usuario no encontrado.";
 });
 
 
