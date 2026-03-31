@@ -30,49 +30,45 @@ use App\Models\Employee;
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
 // --- RUTAS PROTEGIDAS (AUTH) ---
 Route::middleware(['auth', 'verified'])->group(function () {
 
+    // 1. DASHBOARD (Acceso: TODOS)
+    Route::get('/dashboard', function () {
+        // Obtener sucursal del usuario actual
+        $branchId = auth()->user()->branch_id;
 
-// 1. DASHBOARD (Acceso: TODOS)
-Route::get('/dashboard', function () {
+        // 1. Ventas de Hoy
+        $ventasHoy = \App\Models\Sale::whereDate('created_at', now())->sum('total');
 
-    // Obtener sucursal del usuario actual
-    $branchId = auth()->user()->branch_id;
+        // 2. Total Pacientes
+        $pacientesTotal = \App\Models\Patient::count();
 
-    // 1. Ventas de Hoy
-    // (El Trait Multitenantable filtra automáticamente por sucursal en el modelo Sale)
-    $ventasHoy = \App\Models\Sale::whereDate('created_at', now())->sum('total');
+        // 3. Trabajos en Laboratorio
+        $trabajosPendientes = \App\Models\Sale::where('status', 'laboratorio')->count();
 
-    // 2. Total Pacientes
-    $pacientesTotal = \App\Models\Patient::count();
+        // 4. STOCK BAJO (CORREGIDO PARA MULTI-SUCURSAL)
+        $productosBajoStock = DB::table('branch_product')
+                                ->where('branch_id', $branchId)
+                                ->where('stock', '<=', 9) // Umbral de alerta
+                                ->count();
 
-    // 3. Trabajos en Laboratorio
-    $trabajosPendientes = \App\Models\Sale::where('status', 'laboratorio')->count();
+        // 5. Últimas Ventas
+        $ultimasVentas = \App\Models\Sale::with('patient')->latest()->take(5)->get();
 
-    // 4. STOCK BAJO (CORREGIDO PARA MULTI-SUCURSAL)
-    // Consultamos directamente la tabla pivote para ver el stock REAL de ESTA sucursal
-    $productosBajoStock = DB::table('branch_product')
-                            ->where('branch_id', $branchId)
-                            ->where('stock', '<=', 9) // Umbral de alerta (puedes cambiar el 10)
-                            ->count();
+        return view('dashboard', compact('ventasHoy', 'pacientesTotal', 'trabajosPendientes', 'productosBajoStock', 'ultimasVentas'));
 
-    // 5. Últimas Ventas
-    $ultimasVentas = \App\Models\Sale::with('patient')->latest()->take(5)->get();
+    })->name('dashboard');
 
-    return view('dashboard', compact('ventasHoy', 'pacientesTotal', 'trabajosPendientes', 'productosBajoStock', 'ultimasVentas'));
-
-})->middleware(['auth', 'verified'])->name('dashboard');
     // 2. PERFIL DE USUARIO (Acceso: TODOS)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // 3. GESTIÓN DE PACIENTES (Acceso: Vendedor y Optometrista)
-    // Nota: El Admin entra automáticamente por la lógica del Middleware.
-        Route::middleware(['role:vendedor,optometrista'])->group(function () {
+    Route::middleware(['role:vendedor,optometrista'])->group(function () {
         Route::resource('patients', PatientController::class);
-        // Historial clínico también lo pueden ver ambos (o solo opto, según prefieras)
         Route::get('patients/{patient}/historial', [PrescriptionController::class, 'byPatient'])->name('prescriptions.history');
     });
 
@@ -81,7 +77,7 @@ Route::get('/dashboard', function () {
         // Ventas
         Route::get('/ventas', [SaleController::class, 'index'])->name('sales.index');
         Route::get('ventas/nueva', [SaleController::class, 'create'])->name('sales.create');
-        Route::post('/ventas', [SaleController::class, 'store'])->name('sales.store'); // Faltaba el store
+        Route::post('/ventas', [SaleController::class, 'store'])->name('sales.store');
         Route::get('/ventas/{sale}/imprimir', [SaleController::class, 'print'])->name('sales.print');
         Route::delete('/ventas/{sale}', [SaleController::class, 'destroy'])->name('sales.destroy');
         Route::patch('/ventas/{sale}/fecha', [SaleController::class, 'updateDate'])->name('sales.updateDate');
@@ -113,25 +109,25 @@ Route::get('/dashboard', function () {
         Route::delete('receta/{prescription}', [PrescriptionController::class, 'destroy'])->name('prescriptions.destroy');
     });
 
-    // 6. ADMINISTRACIÓN TOTAL (Acceso: Solo Admin)
-    // Aunque el Admin pasa los filtros anteriores, estas rutas son EXCLUSIVAS para él.
+    // 6. ADMINISTRACIÓN DE ÓPTICA (Acceso: Solo Admin - La Dueña)
     Route::middleware(['role:admin'])->group(function () {
-        // Usuarios
+        // Usuarios y Empleados
         Route::resource('users', UserController::class);
         Route::resource('branches', \App\Http\Controllers\BranchController::class);
         Route::get('/personal-y-planillas', PayrollComponent::class)->name('payroll.index');
         Route::get('/employees', App\Livewire\EmployeeComponent::class)->name('employees.index');
         Route::patch('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle');
 
-        // Inventario (Productos y Categorías)
+        // Inventario
         Route::resource('products', ProductController::class);
         Route::resource('categories', CategoryController::class);
 
-        // Compras (Ingreso de Stock)
+        // Compras
         Route::get('/compras', [PurchaseController::class, 'index'])->name('purchases.index');
         Route::get('/compras/crear', [PurchaseController::class, 'create'])->name('purchases.create');
         Route::post('/compras', [PurchaseController::class, 'store'])->name('purchases.store');
 
+        // Reportes
         Route::get('/payroll/print', function (Illuminate\Http\Request $request) {
             $month = $request->month;
             $year = $request->year;
@@ -150,32 +146,24 @@ Route::get('/dashboard', function () {
             return view('reports.payroll', compact('payrolls', 'month', 'year'));
         })->name('payroll.print');
 
-        // Reportes Físicos y Financieros
         Route::get('/inventario/imprimir', [InventoryController::class, 'print'])->name('inventory.print');
         Route::get('/reportes', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reportes/pdf', [ReportController::class, 'pdf'])->name('reports.pdf');
+    });
 
+    // 7. ADMINISTRACIÓN SAAS (Acceso: EXCLUSIVO Super Admin / Desarrollador)
+    Route::middleware(function ($request, $next) {
+        if (auth()->user()->role !== 'superadmin') {
+            abort(403, 'ACCESO DENEGADO. Área exclusiva de desarrollo y facturación SaaS.');
+        }
+        return $next($request);
+    })->group(function () {
         Route::get('/facturacion', [App\Http\Controllers\BranchController::class, 'billing'])->name('billing.index');
         Route::post('/facturacion/{branch}/instalacion', [App\Http\Controllers\BranchController::class, 'payInstallation'])->name('billing.pay_installation');
         Route::post('/facturacion/{branch}/mensualidad', [App\Http\Controllers\BranchController::class, 'renewSubscription'])->name('billing.renew_subscription');
-
     });
-});
-use App\Models\User;
 
-// RUTA TEMPORAL PARA ASCENDERTE
-Route::get('/hacerme-superadmin', function () {
-    // Cambia 'tu_correo@gmail.com' por el correo con el que inicias sesión en el sistema
-    $user = User::where('email', 'admin@grupojs.com')->first();
-
-    if($user) {
-        $user->update(['role' => 'superadmin']);
-        return "¡Felicidades! Ahora eres el Súper Administrador del sistema.";
-    }
-
-    return "Usuario no encontrado.";
 });
 
 
 require __DIR__.'/auth.php';
-
