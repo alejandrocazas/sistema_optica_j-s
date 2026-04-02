@@ -78,6 +78,10 @@
         </thead>
         <tbody>
             @foreach($products as $index => $product)
+            @php
+                // Extraemos el stock correctamente de la relación con la sucursal
+                $stock = $product->branches->first()->pivot->stock ?? 0;
+            @endphp
             <tr>
                 <td class="col-nro">{{ $index + 1 }}</td>
                 <td class="col-code">{{ $product->code }}</td>
@@ -88,7 +92,7 @@
                     @endif
                 </td>
                 <td class="col-stock">
-                    {{ $product->stock }}
+                    {{ $stock }}
                 </td>
                 <td class="col-write"><div class="write-box"></div></td>
                 <td class="col-write"><div class="write-box"></div></td>
