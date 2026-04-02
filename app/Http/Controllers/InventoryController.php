@@ -14,7 +14,7 @@ class InventoryController extends Controller
     }
 
     // 2. Generar el PDF
-    public function print(Request $request)
+   public function print(Request $request)
     {
         // 1. Damos un respiro al servidor
         ini_set('memory_limit', '512M');
