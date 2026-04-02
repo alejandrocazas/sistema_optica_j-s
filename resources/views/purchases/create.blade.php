@@ -27,29 +27,31 @@
             </div>
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white font-serif-display tracking-wide">Registrar Nueva Compra</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Ingreso de mercadería al inventario.</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Ingreso manual o masivo de mercadería al inventario.</p>
             </div>
         </div>
-        <a href="{{ route('products.index') }}" class="text-gray-400 hover:text-[#C59D5F] dark:text-gray-500 dark:hover:text-white flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition group">
+        <a href="{{ route('purchases.index') }}" class="text-gray-400 hover:text-[#C59D5F] dark:text-gray-500 dark:hover:text-white flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition group">
             <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Volver
         </a>
     </div>
 
-    {{-- FORMULARIO --}}
-    <form action="{{ route('purchases.store') }}" method="POST" id="purchaseForm">
+    {{-- FORMULARIO PRINCIPAL (Soporta archivos con enctype) --}}
+    <form action="{{ route('purchases.store') }}" method="POST" id="purchaseForm" enctype="multipart/form-data">
         @csrf
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-            {{-- SECCIÓN 1: DATOS DEL PROVEEDOR --}}
+            {{-- COLUMNA IZQUIERDA: DATOS Y CARGA MASIVA --}}
             <div class="lg:col-span-1 space-y-6">
+
+                {{-- 1. DATOS DEL PROVEEDOR --}}
                 <div class="bg-white dark:bg-neutral-800 p-6 rounded-sm shadow-xl border-t-4 border-[#C59D5F]">
                     <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-6 border-b border-gray-100 dark:border-neutral-700 pb-2 font-serif-display">Datos Generales</h3>
 
                     <div class="mb-5">
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Destino del Stock</label>
-                        @if(auth()->user()->role === 'admin')
+                        @if(auth()->user()->role === 'admin' || auth()->user()->role === 'superadmin')
                             <select name="branch_id" class="w-full p-2.5 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-gold outline-none text-sm font-medium">
                                 @foreach($branches as $branch)
                                     <option value="{{ $branch->id }}" {{ auth()->user()->branch_id == $branch->id ? 'selected' : '' }}>
@@ -73,21 +75,46 @@
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Fecha de Compra</label>
                         <input type="date" name="purchase_date" value="{{ date('Y-m-d') }}" class="w-full p-2.5 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-gold outline-none text-sm" required>
                     </div>
-
-                    <div class="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-sm border border-blue-100 dark:border-blue-800/30 flex gap-3">
-                        <svg class="w-5 h-5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <p class="text-xs text-blue-800 dark:text-blue-300 leading-tight">
-                            El stock aumentará automáticamente y se actualizará el costo unitario del producto.
-                        </p>
-                    </div>
                 </div>
+
+                {{-- 2. IMPORTACIÓN MASIVA (EXCEL/CSV) --}}
+                <div class="bg-white dark:bg-neutral-800 p-6 rounded-sm shadow-xl border border-gray-200 dark:border-neutral-700">
+                    <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-2 border-b border-gray-100 dark:border-neutral-700 pb-2 font-serif-display flex items-center gap-2">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Carga Masiva (Excel)
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-5 leading-relaxed">Ideal para compras grandes. Descarga la plantilla, anota las cantidades y súbela.</p>
+
+                    {{-- Botón Descargar Plantilla --}}
+                    <a href="{{ route('purchases.template') }}" class="w-full flex justify-center items-center gap-2 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-gray-700 dark:text-white text-xs font-bold py-2.5 px-4 rounded-sm transition mb-5 border border-gray-200 dark:border-neutral-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        1. Descargar Plantilla
+                    </a>
+
+                    {{-- Input Archivo CSV --}}
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">2. Subir Plantilla Llenada</label>
+                        <input type="file" name="csv_file" accept=".csv" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:bg-[#C59D5F]/10 file:text-[#C59D5F] hover:file:bg-[#C59D5F]/20 transition cursor-pointer border border-dashed border-gray-300 dark:border-gray-600 p-2 bg-gray-50 dark:bg-neutral-900/50 rounded-sm">
+                    </div>
+
+                    {{-- Botón Guardar Importación --}}
+                    {{-- Usa formaction para enviar a la ruta de importación en lugar de la normal --}}
+                    <button type="submit" formaction="{{ route('purchases.import') }}" class="w-full bg-gray-800 hover:bg-black dark:bg-gray-100 dark:hover:bg-white dark:text-black text-white text-xs font-bold py-3 px-4 rounded-sm transition flex justify-center items-center gap-2 uppercase tracking-wide shadow-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        Procesar Excel y Guardar
+                    </button>
+                </div>
+
             </div>
 
-            {{-- SECCIÓN 2: DETALLE DE PRODUCTOS --}}
+            {{-- COLUMNA DERECHA: INGRESO MANUAL --}}
             <div class="lg:col-span-2">
                 <div class="bg-white dark:bg-neutral-800 shadow-xl rounded-sm overflow-hidden border border-gray-100 dark:border-neutral-700">
                     <div class="p-5 bg-neutral-50 dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-700 flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800 dark:text-white font-serif-display">Detalle de Productos</h3>
+                        <div>
+                            <h3 class="font-bold text-gray-800 dark:text-white font-serif-display">Detalle de Productos (Ingreso Manual)</h3>
+                            <p class="text-xs text-gray-500 mt-1">Usa esta sección si solo compraste unos pocos productos.</p>
+                        </div>
                         <button type="button" onclick="addProductRow()" class="bg-gray-200 hover:bg-gray-300 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-gray-700 dark:text-white text-xs font-bold py-2 px-4 rounded-sm flex items-center gap-1 transition uppercase tracking-wide">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                             Agregar Fila
@@ -111,7 +138,7 @@
                             </tbody>
                             <tfoot class="bg-neutral-50 dark:bg-neutral-900 font-bold text-gray-800 dark:text-white border-t border-gray-200 dark:border-neutral-700">
                                 <tr>
-                                    <td colspan="4" class="px-4 py-4 text-right text-xs uppercase tracking-widest text-gray-500">TOTAL COMPRA:</td>
+                                    <td colspan="4" class="px-4 py-4 text-right text-xs uppercase tracking-widest text-gray-500">TOTAL COMPRA MANUAL:</td>
                                     <td class="px-4 py-4 text-right text-xl text-[#C59D5F] font-serif-display">
                                         Bs <span id="grandTotal">0.00</span>
                                     </td>
@@ -126,13 +153,14 @@
                         <div class="inline-block p-3 rounded-full bg-gray-50 dark:bg-neutral-900 mb-2">
                             <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         </div>
-                        <p class="text-sm">Agrega productos para registrar la compra.</p>
+                        <p class="text-sm">Usa el botón "Agregar Fila" o utiliza la Carga Masiva.</p>
                     </div>
                 </div>
 
+                {{-- Botón Guardar Manual --}}
                 <div class="mt-8 flex justify-end">
                     <button type="submit" class="btn-gold font-bold py-3 px-10 rounded-sm shadow-md transform transition hover:-translate-y-0.5 text-sm uppercase tracking-widest">
-                        GUARDAR COMPRA
+                        GUARDAR COMPRA MANUAL
                     </button>
                 </div>
             </div>
@@ -231,7 +259,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            addProductRow();
+            // Comentado para que inicie vacío y la vista se vea más limpia
+            // addProductRow();
         });
     </script>
 </x-app>

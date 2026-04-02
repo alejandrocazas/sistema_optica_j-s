@@ -127,6 +127,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/compras/crear', [PurchaseController::class, 'create'])->name('purchases.create');
         Route::post('/compras', [PurchaseController::class, 'store'])->name('purchases.store');
 
+        // --- NUEVAS RUTAS PARA EXCEL/CSV ---
+        Route::get('/compras/plantilla', [PurchaseController::class, 'downloadTemplate'])->name('purchases.template');
+        Route::post('/compras/importar', [PurchaseController::class, 'importStock'])->name('purchases.import');
+
         // Reportes
         Route::get('/payroll/print', function (Illuminate\Http\Request $request) {
             $month = $request->month;
