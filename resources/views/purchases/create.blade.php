@@ -274,5 +274,16 @@
             // Comentado para que inicie vacío y la vista se vea más limpia
             // addProductRow();
         });
+        // Función para descargar la plantilla filtrada
+        function downloadTemplate() {
+            const categoryId = document.getElementById('templateCategory').value;
+            let url = "{{ route('purchases.template') }}";
+
+            if (categoryId) {
+                url += "?category_id=" + categoryId;
+            }
+
+            window.location.href = url;
+        }
     </script>
 </x-app>
