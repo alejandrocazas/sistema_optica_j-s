@@ -45,7 +45,7 @@ class InventoryController extends Controller
         $branch = \App\Models\Branch::find($branchId);
 
         // 4. Generamos el PDF
-        $pdf = \PDF::loadView('reports.inventory-pdf', compact('products', 'branch'));
+        $pdf = \PDF::loadView('reports.inventory_pdf', compact('products', 'branch'));
 
         // return $pdf->download('inventario.pdf'); // Si quieres que se descargue directo
         return $pdf->stream('Inventario_' . $branch->name . '.pdf'); // Para verlo en el navegador
