@@ -25,7 +25,10 @@ class PurchaseController extends Controller
         $products = \App\Models\Product::orderBy('name')->get();
         $branches = \App\Models\Branch::all();
 
-        return view('purchases.create', compact('products', 'branches'));
+        // --- NUEVO: Enviamos las categorías ---
+        $categories = \App\Models\Category::orderBy('name')->get();
+
+        return view('purchases.create', compact('products', 'branches', 'categories'));
     }
 
     public function store(Request $request)

@@ -83,22 +83,34 @@
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Carga Masiva (Excel)
                     </h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-5 leading-relaxed">Ideal para compras grandes. Descarga la plantilla, anota las cantidades y súbela.</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-5 leading-relaxed">Filtra por categoría para descargar una plantilla más pequeña y fácil de llenar.</p>
 
-                    {{-- Botón Descargar Plantilla --}}
-                    <a href="{{ route('purchases.template') }}" class="w-full flex justify-center items-center gap-2 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-gray-700 dark:text-white text-xs font-bold py-2.5 px-4 rounded-sm transition mb-5 border border-gray-200 dark:border-neutral-600">
+                    {{-- Selector de Categoría para la plantilla --}}
+                    <div class="mb-4">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Filtrar Plantilla por:</label>
+                        <select id="templateCategory" class="w-full p-2 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-gold outline-none text-xs">
+                            <option value="">Todas las Categorías</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Botón Descargar Plantilla Dinámico --}}
+                    <button type="button" onclick="downloadTemplate()" class="w-full flex justify-center items-center gap-2 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-gray-700 dark:text-white text-xs font-bold py-2.5 px-4 rounded-sm transition mb-5 border border-gray-200 dark:border-neutral-600">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         1. Descargar Plantilla
-                    </a>
+                    </button>
+
+                    <div class="border-t border-dashed border-gray-200 dark:border-neutral-700 my-4"></div>
 
                     {{-- Input Archivo CSV --}}
-                    <div class="mb-5">
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">2. Subir Plantilla Llenada</label>
+                    <div class="mb-5 mt-4">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">2. Subir Plantilla Llenada (.csv)</label>
                         <input type="file" name="csv_file" accept=".csv" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:bg-[#C59D5F]/10 file:text-[#C59D5F] hover:file:bg-[#C59D5F]/20 transition cursor-pointer border border-dashed border-gray-300 dark:border-gray-600 p-2 bg-gray-50 dark:bg-neutral-900/50 rounded-sm">
                     </div>
 
                     {{-- Botón Guardar Importación --}}
-                    {{-- Usa formaction para enviar a la ruta de importación en lugar de la normal --}}
                     <button type="submit" formaction="{{ route('purchases.import') }}" class="w-full bg-gray-800 hover:bg-black dark:bg-gray-100 dark:hover:bg-white dark:text-black text-white text-xs font-bold py-3 px-4 rounded-sm transition flex justify-center items-center gap-2 uppercase tracking-wide shadow-md">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                         Procesar Excel y Guardar
