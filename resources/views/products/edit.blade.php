@@ -86,19 +86,36 @@
                                 class="w-full p-3 border border-gray-200 rounded-sm bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white focus:ring-1 focus-gold outline-none transition text-sm">
                         </div>
 
-                        {{-- STOCK BLOQUEADO (SEGURIDAD) --}}
-                        <div class="bg-red-50 dark:bg-red-900/10 p-4 rounded-sm border border-red-100 dark:border-red-800/30">
-                            <label class="text-xs font-bold text-red-500 dark:text-red-400 mb-2 flex items-center gap-2 uppercase tracking-wide">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                Stock Actual (Bloqueado)
-                            </label>
-                            <input type="number" name="stock" value="{{ $product->stock }}"
-                                   class="bg-white dark:bg-neutral-800 text-gray-500 dark:text-gray-400 font-bold cursor-not-allowed border border-gray-200 dark:border-neutral-600 p-2 rounded-sm w-full text-center text-xl font-serif-display"
-                                   readonly>
-                            <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-2 leading-tight">
-                                Para modificar el stock, utiliza el módulo de <strong>Compras</strong> o realiza un <strong>Ajuste de Inventario</strong>.
-                            </p>
-                        </div>
+                        
+                       {{-- CONTROL DE STOCK POR ROLES --}}
+                        @if(in_array(auth()->user()->role, ['admin', 'superadmin']))
+                            {{-- STOCK DESBLOQUEADO (ADVERTENCIA AMARILLA) --}}
+                            <div class="bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-sm border border-yellow-200 dark:border-yellow-800/30">
+                                <label class="text-xs font-bold text-yellow-600 dark:text-yellow-500 mb-2 flex items-center gap-2 uppercase tracking-wide">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                    Ajuste Rápido de Stock
+                                </label>
+                                <input type="number" name="stock" value="{{ $product->stock }}"
+                                       class="bg-white dark:bg-neutral-800 text-gray-900 dark:text-white font-bold border border-yellow-300 dark:border-yellow-600 p-2 rounded-sm w-full text-center text-xl font-serif-display focus:ring-1 focus:ring-yellow-500 outline-none transition shadow-inner">
+                                <p class="text-[10px] text-yellow-600 dark:text-yellow-500 mt-2 leading-tight">
+                                    <strong>Atención:</strong> Estás forzando el stock general y el de tu sucursal. Úsalo solo para corregir errores de importación.
+                                </p>
+                            </div>
+                        @else
+                            {{-- STOCK BLOQUEADO (ROJO PARA VENDEDORES) --}}
+                            <div class="bg-red-50 dark:bg-red-900/10 p-4 rounded-sm border border-red-100 dark:border-red-800/30">
+                                <label class="text-xs font-bold text-red-500 dark:text-red-400 mb-2 flex items-center gap-2 uppercase tracking-wide">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                    Stock Actual (Bloqueado)
+                                </label>
+                                <input type="number" value="{{ $product->stock }}"
+                                       class="bg-white dark:bg-neutral-800 text-gray-500 dark:text-gray-400 font-bold cursor-not-allowed border border-gray-200 dark:border-neutral-600 p-2 rounded-sm w-full text-center text-xl font-serif-display"
+                                       readonly>
+                                <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-2 leading-tight">
+                                    Para modificar el stock, pide autorización al administrador.
+                                </p>
+                            </div>
+                        @endif
                     </div>
 
                     {{-- COLUMNA DERECHA (DATOS COMERCIALES) --}}

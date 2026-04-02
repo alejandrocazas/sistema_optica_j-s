@@ -89,31 +89,51 @@ class ProductController extends Controller
     {
         $request->validate([
             'category_id' => 'required',
-            // --- CORRECCIÓN AQUÍ: Ignorar el ID actual ---
             'code' => 'required|string|max:255|unique:products,code,'.$product->id,
-            // -------------------------------------------------------------------
             'name' => 'required',
             'price_buy' => 'required|numeric',
             'price_sell' => 'required|numeric',
+            'stock' => 'sometimes|numeric', // <-- Permite recibir el stock si es admin
             'image' => 'nullable|image|max:2048'
         ], [
-            // Mensaje personalizado para el código
             'code.unique' => 'Este código ya está en uso por otro producto. Ingresa uno diferente.',
         ]);
 
-        $data = $request->except('image'); // Tomamos todos los datos MENOS la imagen por ahora
+        $data = $request->except('image');
 
-        // Lógica de la Imagen (Tu código estaba bien)
+        // Lógica de la Imagen
         if ($request->hasFile('image')) {
-            // 1. Borrar foto anterior si existe
             if ($product->image_path) {
                 Storage::disk('public')->delete($product->image_path);
             }
-            // 2. Guardar nueva foto
             $data['image_path'] = $request->file('image')->store('products', 'public');
         }
 
+        // --- LÓGICA DE CORRECCIÓN DE STOCK (SOLO PARA ADMIN/SUPERADMIN) ---
+        $oldStock = $product->stock;
+        $newStock = $request->input('stock', $oldStock); // Si no envían stock, mantiene el viejo
+        $diff = $newStock - $oldStock; // Calculamos la diferencia matemática
+
+        // Actualizamos el producto (incluyendo el stock global si cambió)
         $product->update($data);
+
+        // Si hubo un cambio en el stock y el usuario pertenece a una sucursal
+        if ($diff != 0 && auth()->user()->branch_id) {
+            $branchId = auth()->user()->branch_id;
+
+            // Buscamos el stock específico de esta sucursal
+            $branchProduct = $product->branches()->where('branch_id', $branchId)->first();
+
+            if ($branchProduct) {
+                // Le sumamos/restamos la diferencia al stock que ya tenía la sucursal
+                $product->branches()->updateExistingPivot($branchId, [
+                    'stock' => $branchProduct->pivot->stock + $diff
+                ]);
+            } else {
+                // Si la sucursal nunca había tenido este producto, se lo asignamos
+                $product->branches()->attach($branchId, ['stock' => $newStock]);
+            }
+        }
 
         return redirect()->route('products.index')->with('success', 'Producto actualizado correctamente.');
     }
